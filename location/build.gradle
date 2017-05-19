@@ -24,6 +24,11 @@ android {
         sourceCompatibility rootProject.ext.sourceCompatibility
         targetCompatibility rootProject.ext.targetCompatibility
     }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
 }
 
 dependencies {
@@ -33,6 +38,10 @@ dependencies {
     })
     compile rootProject.ext.deps.appcompat_v7
     testCompile rootProject.ext.deps.junit
+
+    compile rootProject.ext.deps.Logger
+
+    compile files('libs/BaiduLBS_Android.jar')// 百度地图
 }
 
 apply from: rootProject.file('./gradle-mvn-push.gradle')
