@@ -5,6 +5,7 @@ import android.content.Context;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
+import com.like.logger.Logger;
 
 /**
  * 百度地图定位工具类
@@ -16,6 +17,7 @@ public class LocationUtils {
     public BDLocationListener myListener;
 
     public LocationUtils(Context context, MyLocationListener listener) {
+        Logger.setTag("Location");
         myListener = listener;
         mLocationClient = new LocationClient(context.getApplicationContext()); // 声明LocationClient类
         if (listener != null)

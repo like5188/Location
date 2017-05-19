@@ -35,7 +35,7 @@
 
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="ve8QaITe25ZN7EHXqFV0fIC4Md7ldVLU" />
+            android:value="VgyO8fIPwP2KUnSq7tpwcDiqCckwDE9O" />
         <!-- 百度地图完毕 -->
     </application>
 
