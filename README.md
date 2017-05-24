@@ -21,7 +21,21 @@
         compile 'com.github.like5188:Location:1.0.0'
     }
 ```
-2、引用的库
+2、使用
+```java
+    mLocationUtils = new LocationUtils(this, new MyLocationListener() {
+        @Override
+        public void onReceiveLocation(BDLocation location) {
+            super.onReceiveLocation(location);
+            if (location != null) {
+                Logger.i("Location", location.getCity());
+            }
+            mLocationUtils.stop();
+        }
+    });
+    mLocationUtils.start();
+```
+3、引用的库
 ```java
     compile rootProject.ext.deps.Logger
 ```
