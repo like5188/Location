@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
             public void onReceiveLocation(BDLocation location) {
                 super.onReceiveLocation(location);
                 if (location != null) {
-                    Logger.i(location.getCity());
+                    Logger.i("Location", location.getCity());
                 }
                 mLocationUtils.stop();
             }
