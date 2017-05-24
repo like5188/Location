@@ -46,6 +46,8 @@ public class LocationUtils {
         option.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系
         option.setScanSpan(1000);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
         option.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
+        option.setNeedDeviceDirect(false);//可选，设置是否需要设备方向结果
+        option.setIsNeedAltitude(false);//可选，默认false，设置定位时是否需要海拔信息，默认不需要，除基础定位版本都可用
         option.setOpenGps(true);//可选，默认false,设置是否使用gps
         option.setLocationNotify(true);//可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
         option.setIsNeedLocationDescribe(true);//可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”

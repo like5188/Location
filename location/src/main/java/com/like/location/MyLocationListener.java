@@ -70,4 +70,9 @@ public class MyLocationListener implements BDLocationListener {
         }
         Logger.i("Location", sb.toString());
     }
+
+    @Override
+    public void onConnectHotSpotMessage(String s, int i) {
+
+    }
 }
