@@ -18,7 +18,7 @@
 在Module的gradle中加入：
 ```groovy
     dependencies {
-        compile 'com.github.like5188:Location:1.0.0'
+        compile 'com.github.like5188:Location:1.0.1'
     }
 ```
 2、在AndroidManifest.xml文件的application标签内添加
