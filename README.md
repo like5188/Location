@@ -21,7 +21,13 @@
         compile 'com.github.like5188:Location:1.0.0'
     }
 ```
-2、使用
+2、在AndroidManifest.xml文件的application标签内添加
+```java
+    <meta-data
+        android:name="com.baidu.lbsapi.API_KEY"
+        android:value="你应用的apiKey" />  
+```
+3、使用
 ```java
     mLocationUtils = new LocationUtils(this, new MyLocationListener() {
         @Override
@@ -35,7 +41,7 @@
     });
     mLocationUtils.start();
 ```
-3、引用的库
+4、引用的库
 ```java
     compile rootProject.ext.deps.Logger
 ```
