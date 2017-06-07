@@ -11,7 +11,7 @@ ext {
             junit       : "junit:junit:4.12",
 
             // 自己写的库
-            Logger                  : "com.github.like5188:Logger:1.0.0",
+            Logger                  : "com.github.like5188:Logger:1.0.1",
     ]
 
 }
