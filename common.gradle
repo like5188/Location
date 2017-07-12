@@ -9,9 +9,6 @@ ext {
     deps = [
             appcompat_v7: "com.android.support:appcompat-v7:${compileSdkVersion}.+",
             junit       : "junit:junit:4.12",
-
-            // 自己写的库
-            Logger                  : "com.github.like5188:Logger:1.0.1",
     ]
 
 }

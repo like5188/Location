@@ -39,7 +39,7 @@ dependencies {
     compile rootProject.ext.deps.appcompat_v7
     testCompile rootProject.ext.deps.junit
 
-    compile rootProject.ext.deps.Logger
+    compile 'com.github.like5188:Logger:1.0.3'
 
     compile files('libs/BaiduLBS_Android.jar')// 百度地图
 }
