@@ -18,7 +18,7 @@
 在Module的gradle中加入：
 ```groovy
     dependencies {
-        compile 'com.github.like5188:Location:1.2.0'
+        compile 'com.github.like5188:Location:1.3.1'
     }
 ```
 2、在AndroidManifest.xml文件的application标签内添加
@@ -40,10 +40,6 @@
         }
     });
     mLocationUtils.start();
-```
-4、引用的库
-```java
-    compile 'com.github.like5188:Logger:1.2.0'
 ```
 # License
 ```xml

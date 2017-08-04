@@ -20,12 +20,13 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile rootProject.ext.deps.appcompat_v7
-    testCompile rootProject.ext.deps.junit
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation rootProject.ext.deps.test
+    androidTestImplementation rootProject.ext.deps.espresso
+    testImplementation rootProject.ext.deps.junit
+    implementation rootProject.ext.deps.appcompat_v7
+    implementation rootProject.ext.deps.constraint
+    implementation rootProject.ext.deps.kotlin
 
     compile project(':location')
 }
