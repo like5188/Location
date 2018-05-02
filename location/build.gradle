@@ -1,11 +1,9 @@
 apply plugin: 'com.android.library'
-apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
 
     defaultConfig {
         minSdkVersion 16
@@ -37,19 +35,19 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile "com.android.support:appcompat-v7:26.0.0-alpha1"
-    testCompile "junit:junit:4.12"
-
+    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     kapt 'com.android.databinding:compiler:2.3.3'
-
-    compile files('libs/BaiduLBS_Android.jar')// 百度地图
-
+    compile files('libs/BaiduLBS_Android.jar')
+    // 百度地图
     compile 'com.github.like5188:Logger:2.0.0'
+    compile files('libs/BaiduTraceSDK_v3_0_7.jar')
+    implementation files('libs/bos-android-sdk-1.0.3.jar')
 }
 
 apply from: rootProject.file('./gradle-mvn-push.gradle')

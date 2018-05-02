@@ -7,7 +7,7 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 
 /**
- * 百度地图定位工具类
+ * 定位自己位置的工具类
  * <p>
  * {Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}
  */
