@@ -74,44 +74,49 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initBaiduMap(mBinding.tracingMapView.map)
-        initMarker(mBinding.tracingMapView.map)
         mLocationUtils.start()
 
         mTraceUtils.startTrace()
         RxJavaUtils.timer(15000) {
-            mTraceUtils.queryEntityList(listOf("like1", "like2", "like3"), object : OnEntityListener() {
+            mTraceUtils.queryEntity(object : OnEntityListener() {
                 override fun onEntityListCallback(p0: EntityListResponse?) {
                     Logger.e(p0)
                 }
             })
-        }
-    }
-
-    private fun initMarker(baiduMap: BaiduMap) {
-        addMarker(baiduMap, 29.618074, 106.510019, "http://imga.5054399.com/upload_pic/2016/8/19/4399_15460229024.jpg")
-        addMarker(baiduMap, 29.618074, 106.510819, "http://imga1.5054399.com/upload_pic/2016/8/9/4399_16441724474.jpg")
-        addMarker(baiduMap, 29.618374, 106.510819, "http://imga2.5054399.com/upload_pic/2018/2/13/4399_15205910344.jpg")
-        addMarker(baiduMap, 29.618374, 106.510019, "http://imga1.5054399.com/upload_pic/2018/2/11/4399_16365641436.jpg")
-
-        RxJavaUtils.timer(3000) {
-            changeMarkerPosition(mMarkers[0], 29.618974, 106.510099)
+            mTraceUtils.queryEntityList(listOf("like1", "like2"), object : OnEntityListener() {
+                override fun onEntityListCallback(p0: EntityListResponse?) {
+                    p0?.entities?.forEach {
+                        val lat = it.latestLocation.location.latitude
+                        val lng = it.latestLocation.location.longitude
+                        val iconUrl = "http://imga.5054399.com/upload_pic/2016/8/19/4399_15460229024.jpg"
+                        addMarker(mBinding.tracingMapView.map, lat, lng, iconUrl)
+                    }
+                }
+            })
 
             RxJavaUtils.timer(3000) {
-                removeMarker(mMarkers[0])
+                if (mMarkers.isNotEmpty()) {
+                    changeMarkerPosition(mMarkers[0], 29.592481933243, 106.52389432074)
+
+                    RxJavaUtils.timer(3000) {
+                        removeMarker(mMarkers[0])
+                    }
+                }
             }
         }
     }
 
-    private fun addMarker(baiduMap: BaiduMap, lat: Double, lng: Double, icon: String) {
-        mGlideUtils.downloadImage(icon).subscribe(
-                { t ->
-                    val overlayOptions = MarkerOptions().position(LatLng(lat, lng)).icon(BitmapDescriptorFactory.fromBitmap(t)).zIndex(9).draggable(false)
+    private fun addMarker(baiduMap: BaiduMap, lat: Double, lng: Double, iconUrl: String) {
+        mGlideUtils.downloadImage(iconUrl).subscribe(
+                { bitmap ->
+                    val overlayOptions = MarkerOptions().position(LatLng(lat, lng)).icon(BitmapDescriptorFactory.fromBitmap(bitmap)).zIndex(9).draggable(false)
                     mMarkers.add(baiduMap.addOverlay(overlayOptions) as Marker)
                 },
                 {
                     val overlayOptions = MarkerOptions().position(LatLng(lat, lng)).icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_marker_default)).zIndex(9).draggable(false)
                     mMarkers.add(baiduMap.addOverlay(overlayOptions) as Marker)
-                })
+                }
+        )
     }
 
     private fun showInfoWindow(baiduMap: BaiduMap, view: View, marker: Marker, listener: InfoWindow.OnInfoWindowClickListener) {
