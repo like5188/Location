@@ -6,24 +6,11 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="startLocation"
-                android:text="开始定位" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="stopLocation"
-                android:text="关闭定位" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="trace"
-                android:text="鹰眼" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="trace"
+            android:text="鹰眼" />
 
     </LinearLayout>
 

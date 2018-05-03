@@ -3,10 +3,7 @@ package com.like.location
 import android.content.Context
 import com.baidu.trace.LBSTraceClient
 import com.baidu.trace.Trace
-import com.baidu.trace.api.entity.EntityListRequest
-import com.baidu.trace.api.entity.FilterCondition
-import com.baidu.trace.api.entity.LocRequest
-import com.baidu.trace.api.entity.OnEntityListener
+import com.baidu.trace.api.entity.*
 import com.baidu.trace.api.track.HistoryTrackRequest
 import com.baidu.trace.api.track.LatestPointRequest
 import com.baidu.trace.api.track.OnTrackListener
@@ -33,13 +30,13 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
     }
 
     private val mSequenceGenerator = AtomicInteger()
-    private val locRequest: LocRequest = LocRequest(serviceId)
+    private val locRequest: LocRequest by lazy { LocRequest(serviceId) }
     // 是否需要对象存储服务，默认为：false，关闭对象存储服务。注：鹰眼 Android SDK v3.0以上版本支持随轨迹上传图像等对象数据，若需使用此功能，该参数需设为 true，且需导入bos-android-sdk-1.0.2.jar。
     private val isNeedObjectStorage = false
     // 初始化轨迹服务
-    private val mTrace = Trace(serviceId, entityName, isNeedObjectStorage)
+    private val mTrace: Trace by lazy { Trace(serviceId, entityName, isNeedObjectStorage) }
     // 初始化轨迹服务客户端
-    private val mTraceClient = LBSTraceClient(context.applicationContext)
+    private val mTraceClient: LBSTraceClient by lazy { LBSTraceClient(context.applicationContext) }
     // 初始化轨迹服务监听器
     private val mTraceListener: OnTraceListener = object : OnTraceListener {
         /**
@@ -147,6 +144,7 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         mTraceClient.setInterval(gatherInterval, packInterval)
         SPUtils.getInstance(context).remove(KEY_IS_TRACE_STARTED)
         SPUtils.getInstance(context).remove(KEY_IS_GATHER_STARTED)
+        addEntity()
     }
 
     /**
@@ -219,6 +217,10 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         } else {
             mTraceClient.queryRealTimeLoc(locRequest, entityListener)
         }
+    }
+
+    fun addEntity(serviceId: Long = this.serviceId, entityName: String = PhoneUtils.getInstance(context).uuid, tag: Int = getTag(), entityDesc: String? = null, columns: Map<String, String>? = null, listener: OnEntityListener? = null) {
+        mTraceClient.addEntity(AddEntityRequest(tag, serviceId, entityName, entityDesc, columns), listener)
     }
 
     fun queryEntity(listener: OnEntityListener) {

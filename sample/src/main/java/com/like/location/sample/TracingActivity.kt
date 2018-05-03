@@ -12,14 +12,21 @@ import android.view.View
 import com.baidu.location.BDLocation
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
+import com.baidu.trace.api.entity.EntityListResponse
+import com.baidu.trace.api.entity.OnEntityListener
 import com.like.common.util.GlideUtils
 import com.like.common.util.RxJavaUtils
 import com.like.location.LocationUtils
 import com.like.location.MyLocationListener
 import com.like.location.TraceUtils
 import com.like.location.sample.databinding.ActivityTracingBinding
+import com.like.logger.Logger
 
 class TracingActivity : AppCompatActivity(), SensorEventListener {
+    companion object {
+        const val SERVICE_ID = 164746L
+    }
+
     private val mBinding: ActivityTracingBinding by lazy { DataBindingUtil.setContentView<ActivityTracingBinding>(this, R.layout.activity_tracing) }
     private var lastX: Double = 0.0
     private var mCurrentDirection = 0
@@ -33,7 +40,7 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
             override fun onReceiveLocation(location: BDLocation?) {
                 super.onReceiveLocation(location)
                 // map view 销毁后不在处理新接收的位置
-                if (location == null || mBinding.tracingMapView == null) {
+                if (location == null || mBinding.tracingMapView == null || mBinding.tracingMapView.map == null) {
                     return
                 }
                 mCurrentLat = location.latitude
@@ -60,7 +67,7 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
 
     private val mMarkers = mutableListOf<Marker>()
 
-    private val mTraceUtils: TraceUtils by lazy { TraceUtils(this, 1) }
+    private val mTraceUtils: TraceUtils by lazy { TraceUtils(this, SERVICE_ID) }
 
     private val mGlideUtils: GlideUtils by lazy { GlideUtils(this) }
 
@@ -69,6 +76,15 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
         initBaiduMap(mBinding.tracingMapView.map)
         initMarker(mBinding.tracingMapView.map)
         mLocationUtils.start()
+
+        mTraceUtils.startTrace()
+        RxJavaUtils.timer(15000) {
+            mTraceUtils.queryEntityList(listOf("like1", "like2", "like3"), object : OnEntityListener() {
+                override fun onEntityListCallback(p0: EntityListResponse?) {
+                    Logger.e(p0)
+                }
+            })
+        }
     }
 
     private fun initMarker(baiduMap: BaiduMap) {
@@ -155,6 +171,8 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
         mMarkers.clear()
 
         mLocationUtils.stop()
+
+        mTraceUtils.stopTrace()
 
         mBinding.tracingMapView.map.isMyLocationEnabled = false
         //在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理

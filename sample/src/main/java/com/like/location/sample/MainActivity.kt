@@ -11,23 +11,10 @@ import com.like.location.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private val mBinding: ActivityMainBinding by lazy { DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main) }
-    private val mLocationUtils: LocationUtils by lazy {
-        LocationUtils(this, object : MyLocationListener() {
-
-        })
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-    }
-
-    fun startLocation(view: View) {
-        mLocationUtils.start()
-    }
-
-    fun stopLocation(view: View) {
-        mLocationUtils.stop()
     }
 
     fun trace(view: View) {
