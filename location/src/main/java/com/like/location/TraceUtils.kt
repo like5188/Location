@@ -144,7 +144,6 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         mTraceClient.setInterval(gatherInterval, packInterval)
         SPUtils.getInstance(context).remove(KEY_IS_TRACE_STARTED)
         SPUtils.getInstance(context).remove(KEY_IS_GATHER_STARTED)
-        addEntity()
     }
 
     /**
@@ -217,10 +216,6 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         } else {
             mTraceClient.queryRealTimeLoc(locRequest, entityListener)
         }
-    }
-
-    fun addEntity(serviceId: Long = this.serviceId, entityName: String = PhoneUtils.getInstance(context).uuid, tag: Int = getTag(), entityDesc: String? = null, columns: Map<String, String>? = null, listener: OnEntityListener? = null) {
-        mTraceClient.addEntity(AddEntityRequest(tag, serviceId, entityName, entityDesc, columns), listener)
     }
 
     fun queryEntity(listener: OnEntityListener) {
