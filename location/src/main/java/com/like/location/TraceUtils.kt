@@ -3,7 +3,10 @@ package com.like.location
 import android.content.Context
 import com.baidu.trace.LBSTraceClient
 import com.baidu.trace.Trace
-import com.baidu.trace.api.entity.*
+import com.baidu.trace.api.entity.EntityListRequest
+import com.baidu.trace.api.entity.FilterCondition
+import com.baidu.trace.api.entity.LocRequest
+import com.baidu.trace.api.entity.OnEntityListener
 import com.baidu.trace.api.track.HistoryTrackRequest
 import com.baidu.trace.api.track.LatestPointRequest
 import com.baidu.trace.api.track.OnTrackListener
@@ -176,6 +179,8 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
     }
 
     /**
+     * 查询本设备当前时间以前12小时的历史轨迹
+     *
      * @param tag 请求标识
      * @param startTime 开始时间戳(单位：秒)，默认为当前时间以前12小时
      * @param endTime 结束时间戳(单位：秒)，默认为当前时间
@@ -195,12 +200,15 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         mTraceClient.queryHistoryTrack(historyTrackRequest, listener)
     }
 
+    /**
+     * 设置轨迹采集和打包上传的间隔
+     */
     fun setInterval(gatherInterval: Int, packInterval: Int) {
         mTraceClient.setInterval(gatherInterval, packInterval)
     }
 
     /**
-     * 获取当前位置
+     * 获取本设备当前位置
      */
     fun getCurrentLocation(entityListener: OnEntityListener, trackListener: OnTrackListener) {
         // 网络连接正常，开启服务及采集，则查询纠偏后实时位置；否则进行实时定位
@@ -218,6 +226,9 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         }
     }
 
+    /**
+     * 查询本设备
+     */
     fun queryEntity(listener: OnEntityListener) {
         // 过滤条件
         val filterCondition = FilterCondition()
@@ -236,6 +247,9 @@ class TraceUtils(private val context: Context, private val serviceId: Long, priv
         mTraceClient.queryEntityList(request, listener)
     }
 
+    /**
+     * 查询其它设备
+     */
     fun queryEntityList(entityNames: List<String>? = null, listener: OnEntityListener) {
         // 过滤条件
         val filterCondition = FilterCondition()

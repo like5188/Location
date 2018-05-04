@@ -29,6 +29,10 @@
 ```
 3、使用
 ```java
+    在Application中
+    // 在使用 SDK 各组间之前初始化 context 信息，传入 ApplicationContext
+    SDKInitializer.initialize(this)
+
     mLocationUtils = new LocationUtils(this, new MyLocationListener() {
         @Override
         public void onReceiveLocation(BDLocation location) {
