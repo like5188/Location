@@ -21,13 +21,7 @@ import com.like.location.MyLocationListener
 import com.like.location.TraceUtils
 import com.like.location.sample.databinding.ActivityTracingBinding
 import com.like.logger.Logger
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Observer
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import java.util.concurrent.TimeUnit
 
 class TracingActivity : AppCompatActivity(), SensorEventListener {
     companion object {
@@ -87,35 +81,17 @@ class TracingActivity : AppCompatActivity(), SensorEventListener {
 
         mTraceUtils.startTrace()
 
-        queryMarkersPeriodically()
-    }
-
-    private fun queryMarkersPeriodically() {
-        // 延迟一段时间，然后以固定周期循环执行某一任务
-        Observable.create(
-                ObservableOnSubscribe<Any> {
-                    disposable = Schedulers.newThread().createWorker()
-                            .schedulePeriodically({
-                                queryMarkers()
-                            },
-                                    1000,
-                                    5000,
-                                    TimeUnit.MILLISECONDS
-                            )
-                })
-                .subscribeOn(Schedulers.io()) // 指定 subscribe() 发生在 scheduler 线程
-                .observeOn(AndroidSchedulers.mainThread()) // 指定 Subscriber 的回调发生在主线程
-                .subscribe()
+        disposable = RxJavaUtils.polling({ queryMarkers() }, 1000, 4000)
     }
 
     private fun queryMarkers() {
         mTraceUtils.queryEntityList(listOf("like1", "like2"), object : OnEntityListener() {
             override fun onEntityListCallback(p0: EntityListResponse?) {
+                Logger.i("queryEntityList")
                 p0?.entities?.forEach {
                     val lat = it.latestLocation.location.latitude
                     val lng = it.latestLocation.location.longitude
                     val iconUrl = "http://imga.5054399.com/upload_pic/2016/8/19/4399_15460229024.jpg"
-                    Logger.i("queryEntityList success")
                     addMarker(mBinding.tracingMapView.map, lat, lng, iconUrl)
                 }
 
