@@ -13,8 +13,13 @@ public final class Constants {
     public static final int DEFAULT_PACK_INTERVAL = 10;
 
     /**
-     * 实时定位间隔(单位:秒)
+     * 实时定位间隔(单位:毫秒)
      */
-    public static final int LOC_INTERVAL = 10;
+    public static final int DEFAULT_LOCATION_INTERVAL = 3000;
+
+    /**
+     * 查询entityList的时间间隔(单位:毫秒)
+     */
+    public static final Long DEFAULT_QUERY_ENTITY_LIST_INTERVAL = 3000L;
 
 }
