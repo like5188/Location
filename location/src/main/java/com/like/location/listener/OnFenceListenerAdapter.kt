@@ -1,4 +1,4 @@
-package com.like.location
+package com.like.location.listener
 
 import com.baidu.trace.api.fence.*
 

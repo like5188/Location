@@ -1,4 +1,4 @@
-package com.like.location
+package com.like.location.util
 
 object LocationConstants {
     /**

@@ -4,6 +4,7 @@ import android.content.Context
 import android.databinding.DataBindingUtil
 import android.graphics.Bitmap
 import android.hardware.SensorManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
@@ -13,15 +14,17 @@ import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.baidu.trace.api.entity.EntityListResponse
 import com.baidu.trace.api.entity.OnEntityListener
-import com.like.common.util.GlideUtils
-import com.like.common.util.RxJavaUtils
+import com.like.livedatabus.LiveDataBus
 import com.like.location.databinding.ViewMapMarkerBinding
-import com.like.logger.Logger
-import com.like.rxbus.RxBus
+import com.like.location.entity.CircleFenceInfo
+import com.like.location.listener.MyLocationListener
+import com.like.location.util.GlideUtils
+import com.like.location.util.LocationConstants
+import com.like.location.util.RxJavaUtils
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import org.jetbrains.anko.bundleOf
 import java.io.Serializable
-
 
 /**
  * 共享位置管理工具类
@@ -43,7 +46,8 @@ class SharedLocationUtils(val baiduMapView: MapView,
                           val defaultIconResId: Int = R.drawable.icon_marker_default,// 默认marker图标
                           val period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
     companion object {
-        val KEY_MARKER_EXTRAINFO = "key_marker_extrainfo"
+        private val TAG = SharedLocationUtils::class.java.simpleName
+        const val KEY_MARKER_EXTRAINFO = "key_marker_extrainfo"
     }
 
     private val context: Context by lazy { baiduMapView.context }
@@ -99,23 +103,20 @@ class SharedLocationUtils(val baiduMapView: MapView,
         if (myIconResId != -1) {
             startLocationMy(BitmapDescriptorFactory.fromResource(myIconResId))
         } else if (myIconUrl.isNotEmpty()) {
-            mGlideUtils.downloadImage(myIconUrl).subscribe(
-                    { bitmap ->
-                        startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView(bitmap)))
-                    },
-                    {
-                        startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView()))
-                    }
-            )
+            mGlideUtils.downloadImage(myIconUrl, {
+                startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView(it)))
+            }, {
+                startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView()))
+            })
         }
     }
 
     fun setMarkerList(markerInfos: List<MarkerInfo>) {
         if (markerInfos.isEmpty()) return
         this.markerInfos.addAll(markerInfos)
-        disposable = RxJavaUtils.polling({
+        disposable = RxJavaUtils.interval(period, Schedulers.io()) {
             queryMarkers()
-        }, 0, period)
+        }
     }
 
     /**
@@ -145,7 +146,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
         baiduMapView.map.isMyLocationEnabled = true
         // Marker点击
         baiduMapView.map.setOnMarkerClickListener {
-            RxBus.post(LocationConstants.TAG_CLICK_MARKER, getMarkerInfoFromMarker(it))
+            LiveDataBus.post(LocationConstants.TAG_CLICK_MARKER, getMarkerInfoFromMarker(it))
             true
         }
     }
@@ -200,9 +201,9 @@ class SharedLocationUtils(val baiduMapView: MapView,
         if (entityNames.isNotEmpty()) {
             mTraceUtils?.queryEntityList(entityNames, object : OnEntityListener() {
                 override fun onEntityListCallback(p0: EntityListResponse?) {
-                    Logger.d("onEntityListCallback ${p0?.entities}")
+                    Log.d(TAG, "onEntityListCallback ${p0?.entities}")
                     if (p0 == null || p0.entities == null || p0.entities.isEmpty()) {
-                        Logger.d("没有查到entity，清除所有marker")
+                        Log.d(TAG, "没有查到entity，清除所有marker")
                         clearMarker()
                     } else {
                         val entityNamesResult = mutableListOf<String>()
@@ -211,7 +212,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
                         }
                         // 下线的
                         entityNames.subtract(entityNamesResult).forEach {
-                            Logger.d("entity（$it）离线，删除")
+                            Log.d(TAG, "entity（$it）离线，删除")
                             val marker = getMarkerByEntityName(it)
                             removeMarker(marker)
                         }
@@ -222,14 +223,14 @@ class SharedLocationUtils(val baiduMapView: MapView,
 
                             val marker = getMarkerByEntityName(it.entityName)
                             if (marker != null) {// 已经存在了
-                                Logger.d("entity（${it.entityName}）已经存在了，改变位置")
+                                Log.d(TAG, "entity（${it.entityName}）已经存在了，改变位置")
                                 getMarkerInfoFromMarker(marker)?.let {
                                     it.lat = lat
                                     it.lng = lng
                                 }
                                 changeMarkerPosition(marker, lat, lng)
                             } else {
-                                Logger.d("entity（${it.entityName}）不存在，创建")
+                                Log.d(TAG, "entity（${it.entityName}）不存在，创建")
                                 getMarkerInfoByEntityName(it.entityName)?.let {
                                     it.lat = lat
                                     it.lng = lng
@@ -244,7 +245,9 @@ class SharedLocationUtils(val baiduMapView: MapView,
     }
 
     private fun getMarkerByEntityName(entityName: String): Marker? {
-        val filter = mMarkers.filter { (getMarkerInfoFromMarker(it)?.entityName ?: "") == entityName }
+        val filter = mMarkers.filter {
+            (getMarkerInfoFromMarker(it)?.entityName ?: "") == entityName
+        }
         return if (filter.isNotEmpty()) filter[0] else null
     }
 
@@ -269,7 +272,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
         if (markerInfo.iconUrl.isEmpty()) {
             addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(getMapHeaderView()), markerInfo)
         } else {
-            mGlideUtils.downloadImage(markerInfo.iconUrl).subscribe(
+            mGlideUtils.downloadImage(markerInfo.iconUrl,
                     { bitmap ->
                         addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(getMapHeaderView(bitmap)), markerInfo)
                     },

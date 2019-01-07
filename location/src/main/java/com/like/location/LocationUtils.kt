@@ -3,6 +3,8 @@ package com.like.location
 import android.content.Context
 import com.baidu.location.LocationClient
 import com.baidu.location.LocationClientOption
+import com.like.location.listener.MyLocationListener
+import com.like.location.util.LocationConstants
 
 class LocationUtils(context: Context, listener: MyLocationListener?) {
     private val mLocationClient: LocationClient by lazy { LocationClient(context.applicationContext) } // 声明LocationClient类

@@ -1,6 +1,9 @@
 package com.like.location
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.util.Log
+import android.widget.Toast
 import com.baidu.mapapi.map.BaiduMap
 import com.baidu.mapapi.map.MapPoi
 import com.baidu.mapapi.model.LatLng
@@ -15,12 +18,11 @@ import com.baidu.trace.api.track.HistoryTrackRequest
 import com.baidu.trace.api.track.LatestPointRequest
 import com.baidu.trace.api.track.OnTrackListener
 import com.baidu.trace.model.*
-import com.like.common.util.NetWorkUtils
-import com.like.common.util.SPUtils
-import com.like.logger.Logger
-import com.like.rxbus.RxBus
-import com.like.toast.longToastCenter
-import com.like.toast.shortToastCenter
+import com.like.livedatabus.LiveDataBus
+import com.like.location.entity.CircleFenceInfo
+import com.like.location.listener.OnFenceListenerAdapter
+import com.like.location.util.LocationConstants
+import com.like.location.util.SPUtils
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -42,6 +44,7 @@ class TraceUtils(private val context: Context,
                  private val gatherInterval: Int = LocationConstants.DEFAULT_GATHER_INTERVAL,
                  private val packInterval: Int = LocationConstants.DEFAULT_PACK_INTERVAL) {
     companion object {
+        private val TAG = TraceUtils::class.java.simpleName
         const val KEY_IS_TRACE_STARTED = "is_trace_started"
         const val KEY_IS_GATHER_STARTED = "is_gather_started"
     }
@@ -84,11 +87,11 @@ class TraceUtils(private val context: Context,
          */
         override fun onStartTraceCallback(status: Int, message: String) {
             if (StatusCodes.SUCCESS == status || StatusCodes.START_TRACE_NETWORK_CONNECT_FAILED <= status) {// 开启服务成功后
-                Logger.d("开启鹰眼服务成功")
-                SPUtils.getInstance(context).put(KEY_IS_TRACE_STARTED, true)
+                Log.d(TAG, "开启鹰眼服务成功")
+                SPUtils.getInstance().put(KEY_IS_TRACE_STARTED, true)
                 startGather()
             } else {
-                Logger.e("开启鹰眼服务失败")
+                Log.e(TAG, "开启鹰眼服务失败")
             }
         }
 
@@ -105,12 +108,12 @@ class TraceUtils(private val context: Context,
          */
         override fun onStopTraceCallback(status: Int, message: String) {
             if (StatusCodes.SUCCESS == status || StatusCodes.CACHE_TRACK_NOT_UPLOAD == status) {
-                Logger.d("停止鹰眼服务成功")
+                Log.d(TAG, "停止鹰眼服务成功")
                 // 停止成功后，直接移除is_trace_started记录（便于区分用户没有停止服务，直接杀死进程的情况）
-                SPUtils.getInstance(context).remove(KEY_IS_TRACE_STARTED)
-                SPUtils.getInstance(context).remove(KEY_IS_GATHER_STARTED)
+                SPUtils.getInstance().remove(KEY_IS_TRACE_STARTED)
+                SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
             } else {
-                Logger.e("停止鹰眼服务失败")
+                Log.e(TAG, "停止鹰眼服务失败")
             }
         }
 
@@ -126,10 +129,10 @@ class TraceUtils(private val context: Context,
          */
         override fun onStartGatherCallback(status: Int, message: String) {
             if (StatusCodes.SUCCESS == status || StatusCodes.GATHER_STARTED == status) {
-                Logger.d("开启轨迹采集成功")
-                SPUtils.getInstance(context).put(KEY_IS_GATHER_STARTED, true)
+                Log.d(TAG, "开启轨迹采集成功")
+                SPUtils.getInstance().put(KEY_IS_GATHER_STARTED, true)
             } else {
-                Logger.e("开启轨迹采集失败")
+                Log.e(TAG, "开启轨迹采集失败")
             }
         }
 
@@ -145,10 +148,10 @@ class TraceUtils(private val context: Context,
          */
         override fun onStopGatherCallback(status: Int, message: String) {
             if (StatusCodes.SUCCESS == status || StatusCodes.GATHER_STOPPED == status) {
-                Logger.d("停止轨迹服务成功")
-                SPUtils.getInstance(context).remove(KEY_IS_GATHER_STARTED)
+                Log.d(TAG, "停止轨迹服务成功")
+                SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
             } else {
-                Logger.e("停止轨迹服务失败")
+                Log.e(TAG, "停止轨迹服务失败")
             }
         }
 
@@ -169,7 +172,7 @@ class TraceUtils(private val context: Context,
             if (messageNo < 0x03 || messageNo > 0x04) {
                 return
             }
-            Logger.i("收到围栏报警消息：$messageNo：$message")
+            Log.i(TAG, "收到围栏报警消息：$messageNo：$message")
             /**
              * 获取报警推送消息
              */
@@ -185,10 +188,10 @@ class TraceUtils(private val context: Context,
             val curCircleFenceInfo = getCircleFenceInfoByFenceId(alarmPushInfo.fenceId)
             when (alarmPushInfo.monitoredAction) {
                 MonitoredAction.enter -> {// 进入围栏
-                    RxBus.post(LocationConstants.TAG_MOVE_IN_FENCE, curCircleFenceInfo)
+                    LiveDataBus.post(LocationConstants.TAG_MOVE_IN_FENCE, curCircleFenceInfo)
                 }
                 MonitoredAction.exit -> {// 离开围栏
-                    RxBus.post(LocationConstants.TAG_MOVE_OUT_FENCE, curCircleFenceInfo)
+                    LiveDataBus.post(LocationConstants.TAG_MOVE_OUT_FENCE, curCircleFenceInfo)
                 }
                 else -> {
                 }
@@ -202,15 +205,16 @@ class TraceUtils(private val context: Context,
         // 设置定位和打包周期
         mTraceClient.setInterval(gatherInterval, packInterval)
         mTraceClient.setOnTraceListener(mTraceListener)
-        SPUtils.getInstance(context).remove(KEY_IS_TRACE_STARTED)
-        SPUtils.getInstance(context).remove(KEY_IS_GATHER_STARTED)
+        SPUtils.getInstance().init(context)
+        SPUtils.getInstance().remove(KEY_IS_TRACE_STARTED)
+        SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
 
         // 点击围栏监听
         baiduMap.setOnMapClickListener(object : BaiduMap.OnMapClickListener {
             override fun onMapClick(p0: LatLng?) {
                 mFenceInfoList.forEach {
                     if (it.clickInOverlay(p0)) {
-                        RxBus.post(LocationConstants.TAG_CLICK_FENCE_OVERLAY, it)
+                        LiveDataBus.post(LocationConstants.TAG_CLICK_FENCE_OVERLAY, it)
                         return@forEach
                     }
                 }
@@ -291,9 +295,9 @@ class TraceUtils(private val context: Context,
      */
     fun getCurrentLocation(entityListener: OnEntityListener, trackListener: OnTrackListener) {
         // 网络连接正常，开启服务及采集，则查询纠偏后实时位置；否则进行实时定位
-        if (NetWorkUtils.isConnected(context)
-                && SPUtils.getInstance(context).get(KEY_IS_TRACE_STARTED, false)
-                && SPUtils.getInstance(context).get(KEY_IS_GATHER_STARTED, false)) {
+        if (isNetworkAvailable(context)
+                && SPUtils.getInstance().get(KEY_IS_TRACE_STARTED, false)
+                && SPUtils.getInstance().get(KEY_IS_GATHER_STARTED, false)) {
             val request = LatestPointRequest(getTag(), serviceId, myEntityName)
             val processOption = ProcessOption()
             processOption.isNeedDenoise = true
@@ -303,6 +307,15 @@ class TraceUtils(private val context: Context,
         } else {
             mTraceClient.queryRealTimeLoc(locRequest, entityListener)
         }
+    }
+
+    /**
+     * 获取网络类型
+     */
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val info = connectivity.activeNetworkInfo
+        return info != null && info.isConnected
     }
 
     /**
@@ -351,16 +364,16 @@ class TraceUtils(private val context: Context,
                         val filter = response.fenceInfos.filter { it.circleFence.fenceName == circleFenceInfo.name }
                         if (filter.isNotEmpty()) {
                             circleFenceInfo.id = filter[0].circleFence.fenceId// 赋值围栏id
-                            Logger.i("已经存在围栏：$circleFenceInfo")
+                            Log.i(TAG, "已经存在围栏：$circleFenceInfo")
                             circleFenceInfo.createOverlay(baiduMap)
                         } else {
-                            Logger.i("创建围栏：$circleFenceInfo")
+                            Log.i(TAG, "创建围栏：$circleFenceInfo")
                             createFence(circleFenceInfo)
                         }
                     }
                 } else {
                     mFenceInfoList.forEach {
-                        Logger.i("创建围栏：$it")
+                        Log.i(TAG, "创建围栏：$it")
                         createFence(it)
                     }
                 }
@@ -380,7 +393,8 @@ class TraceUtils(private val context: Context,
         // 请求标识
         val tag = getTag()
         // 围栏圆心
-        val center = com.baidu.trace.model.LatLng(circleFenceInfo.latLng?.latitude ?: 0.0, circleFenceInfo.latLng?.longitude ?: 0.0)
+        val center = com.baidu.trace.model.LatLng(circleFenceInfo.latLng?.latitude
+                ?: 0.0, circleFenceInfo.latLng?.longitude ?: 0.0)
         // 去噪精度，则定位精度大于denoise米的轨迹点都不会参与围栏计算。
         val denoise = 30
         // 坐标类型
@@ -392,11 +406,11 @@ class TraceUtils(private val context: Context,
             override fun onCreateFenceCallback(response: CreateFenceResponse) {
                 //创建围栏响应结果,能获取围栏的一些信息
                 if (StatusCodes.SUCCESS != response.getStatus()) {
-                    context.shortToastCenter("创建围栏失败")
+                    Toast.makeText(context, "创建围栏失败", Toast.LENGTH_SHORT).show()
                     return
                 }
                 circleFenceInfo.id = response.fenceId//创建的围栏id
-                Logger.i("创建围栏成功：$circleFenceInfo")
+                Log.i(TAG, "创建围栏成功：$circleFenceInfo")
                 circleFenceInfo.createOverlay(baiduMap)
             }
         })
@@ -414,7 +428,7 @@ class TraceUtils(private val context: Context,
     private fun getFenceIds(): List<Long> {
         val fenceIds = mutableListOf<Long>()
         mFenceInfoList.mapTo(fenceIds) {
-            Logger.w(it)
+            Log.w(TAG, it.toString())
             it.id
         }
         return fenceIds
@@ -442,8 +456,8 @@ class TraceUtils(private val context: Context,
                 fenceAlarmInfos.forEach {
                     sb.append("${it.fenceId}；${it.fenceName}；${it.monitoredPerson}；${it.monitoredAction}\n")
                 }
-                context.longToastCenter(sb.toString())
-                Logger.e(sb.toString())
+                Toast.makeText(context, sb.toString(), Toast.LENGTH_SHORT).show()
+                Log.e(TAG, sb.toString())
             }
         })
     }
@@ -465,19 +479,19 @@ class TraceUtils(private val context: Context,
                     when (it.monitoredStatus) {//获取状态
                         MonitoredStatus.`in` -> {// 监控的设备在围栏内
                             sb.append("在围栏内(围栏id：${it.fenceId})\n")
-                            Logger.e("监控的设备在围栏内(围栏id：${it.fenceId})")
+                            Log.e(TAG, "监控的设备在围栏内(围栏id：${it.fenceId})")
                         }
                         MonitoredStatus.out -> {// 监控的设备在围栏外
                             sb.append("在围栏外(围栏id：${it.fenceId})\n")
-                            Logger.e("监控的设备在围栏外(围栏id：${it.fenceId})")
+                            Log.e(TAG, "监控的设备在围栏外(围栏id：${it.fenceId})")
                         }
                         else -> {
                             sb.append("状态未知(围栏id：${it.fenceId})\n")
-                            Logger.e("监控的设备状态未知(围栏id：${it.fenceId})")
+                            Log.e(TAG, "监控的设备状态未知(围栏id：${it.fenceId})")
                         }
                     }
                 }
-                context.longToastCenter(sb.toString())
+                Toast.makeText(context, sb.toString(), Toast.LENGTH_SHORT).show()
             }
         })
     }

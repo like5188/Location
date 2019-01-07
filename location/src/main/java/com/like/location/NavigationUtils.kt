@@ -3,15 +3,15 @@ package com.like.location
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import com.like.toast.shortToastCenter
+import android.widget.Toast
 
 /**
  * 导航工具。支持百度、高德导航
  */
 object NavigationUtils {
     //map app包名
-    val BAIDU_MAP_APP = "com.baidu.BaiduMap"
-    val GAODE_MAP_APP = "com.autonavi.minimap"
+    private const val BAIDU_MAP_APP = "com.baidu.BaiduMap"
+    private const val GAODE_MAP_APP = "com.autonavi.minimap"
 
     fun navigation(context: Context, endlatitude: Double, endlongitude: Double) {
         when {
@@ -23,7 +23,7 @@ object NavigationUtils {
                 context.startActivity(Intent().apply {
                     this.data = Uri.parse("amapuri://route/plan/?dlat=$endlatitude&dlon=$endlongitude&dev=0&t=0")
                 })
-            else -> context.shortToastCenter("您的手机尚未安装百度地图或高德地图")
+            else -> Toast.makeText(context, "您的手机尚未安装百度地图或高德地图", Toast.LENGTH_SHORT).show()
         }
     }
 

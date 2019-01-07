@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <FrameLayout
@@ -8,17 +7,12 @@
         android:layout_height="60dp"
         android:background="@drawable/icon_marker_surround_head">
 
-        <com.like.common.view.SelectableRoundedImageView
+        <ImageView
             android:id="@+id/iv"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"
             android:scaleType="fitXY"
-            app:sriv_left_bottom_corner_radius="20dp"
-            app:sriv_left_top_corner_radius="20dp"
-            app:sriv_oval="true"
-            app:sriv_right_bottom_corner_radius="20dp"
-            app:sriv_right_top_corner_radius="20dp"
             tools:src="@drawable/icon_marker_default" />
     </FrameLayout>
 </layout>

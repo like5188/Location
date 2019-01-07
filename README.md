@@ -1,6 +1,12 @@
-# Location
+#### 最新版本
 
-百度地图相关工具，只是使用了百度地图的基础定位功能。引用版本：BaiduLoc_AndroidSDK_v7.1
+模块|Location
+---|---
+最新版本|[![Download](https://jitpack.io/v/like5188/Location.svg)](https://jitpack.io/#like5188/Location)
+
+## 功能介绍
+
+1、百度地图相关工具，只是使用了百度地图的基础定位功能。引用版本：BaiduLoc_AndroidSDK_v7.1
 
 ## 使用方法：
 
@@ -21,12 +27,14 @@
         compile 'com.github.like5188:Location:版本号'
     }
 ```
+
 2、在AndroidManifest.xml文件的application标签内添加
 ```java
     <meta-data
         android:name="com.baidu.lbsapi.API_KEY"
         android:value="你应用的apiKey" />  
 ```
+
 3、使用
 ```java
     在Application中
@@ -45,18 +53,8 @@
     });
     mLocationUtils.start();
 ```
-# License
-```xml
-    Copyright 2017 like5188
-    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    
-    http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+
+4、Proguard
+```java
+    -dontwarn com.tencent.smtt.**
+```
