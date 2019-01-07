@@ -1,9 +1,5 @@
 package com.like.location.util
 
-import android.view.View
-import android.widget.TextView
-import com.jakewharton.rxbinding2.view.RxView
-import com.jakewharton.rxbinding2.widget.RxTextView
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Scheduler
@@ -118,41 +114,5 @@ object RxJavaUtils {
     @JvmStatic
     fun <T> runIoAndUpdate(invoke: () -> T, callback: (T) -> Unit, error: ((Throwable) -> Unit)? = null) =
             runAndUpdate(invoke, callback, Schedulers.io(), error)
-
-    /**
-     * 防抖动搜索（300毫秒限制）（当N个结点发生的时间太靠近（即发生的时间差小于设定的值T），debounce就会自动过滤掉前N-1个结点。）
-     *
-     * @param searchEditText
-     * @param searchObservable io线程执行的任务，通常为请求接口，配合Retrofit使用
-     * @param callback 结果回调，在UI线程
-     */
-    @JvmStatic
-    fun <T> addTextChangedListener(searchEditText: TextView, searchObservable: (String) -> Observable<T>, callback: (T) -> Unit, error: ((Throwable) -> Unit)? = null) =
-            RxTextView.textChanges(searchEditText)
-                    .debounce(300, TimeUnit.MILLISECONDS, Schedulers.io())
-                    //对用户输入的关键字进行过滤
-                    .filter { charSequence -> charSequence.toString().trim { it <= ' ' }.isNotEmpty() }
-                    .map(CharSequence::toString)
-                    // switchMap替代flatMap，有新的数据发来的时候，之前的就会取消掉。
-                    .switchMap { charSequence -> searchObservable(charSequence) }
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            { callback(it) },
-                            { error?.invoke(it) }
-                    )
-
-    /**
-     * 防抖动按钮点击（指定时间间隔内只触发一次点击事件）
-     *
-     * @param interval      指定时间间隔(毫秒)
-     * @param view
-     * @param clickListener
-     */
-    @JvmStatic
-    fun addOnClickListener(interval: Long, view: View, clickListener: View.OnClickListener) =
-            RxView.clicks(view)
-                    .throttleFirst(interval, TimeUnit.MILLISECONDS)
-                    .subscribe { clickListener.onClick(view) }
 
 }

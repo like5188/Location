@@ -1,4 +1,4 @@
-package com.like.location
+package com.like.location.entity
 
 import android.graphics.Color
 import android.os.Bundle

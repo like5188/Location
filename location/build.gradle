@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
@@ -31,6 +32,11 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -41,7 +47,7 @@ dependencies {
     compileOnly 'com.android.support:appcompat-v7:28.0.0'
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // anko 包含了协程相关的库
-    api('org.jetbrains.anko:anko:0.10.8') {
+    implementation('org.jetbrains.anko:anko:0.10.8') {
         exclude group: 'com.android.support'
     }
     // rxjava2
@@ -53,14 +59,14 @@ dependencies {
     }
     implementation "com.github.bumptech.glide:okhttp3-integration:4.8.0"
     implementation 'jp.wasabeef:glide-transformations:4.0.1'// glide对应的图片处理库，可以转换图片为圆形、圆角矩形、高斯模糊等等效果
-    // rxbinding
-    implementation 'com.jakewharton.rxbinding2:rxbinding:2.2.0'
 
     implementation 'com.github.like5188.LiveDataBus:livedatabus:1.2.2'
 
     implementation files('libs/BaiduLBS_Android.jar')// 百度地图
     implementation files('libs/BaiduTraceSDK_v3_0_7.jar')
     implementation files('libs/bos-android-sdk-1.0.3.jar')
+
+    kapt 'com.github.bumptech.glide:compiler:4.8.0'
 }
 
 apply from: rootProject.file('./gradle-mvn-push.gradle')
