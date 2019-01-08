@@ -26,7 +26,7 @@ class CircleFenceInfo {
      */
     var latLng: LatLng? = null
     /**
-     * 围栏半径
+     * 围栏半径（单位 : 米）
      */
     var radius = 0
     /**

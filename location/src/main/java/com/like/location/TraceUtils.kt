@@ -476,9 +476,7 @@ class TraceUtils(
      * 查询围栏
      */
     private fun queryFenceList() {
-        // 请求标识
-        val tag = getTag()
-        val request = FenceListRequest.buildLocalRequest(tag, serviceId, myEntityName, null)
+        val request = FenceListRequest.buildLocalRequest(getTag(), serviceId, myEntityName, null)
         mTraceClient.queryFenceList(request, object : OnFenceListenerAdapter() {
             override fun onFenceListCallback(response: FenceListResponse) {
                 if (StatusCodes.SUCCESS == response.getStatus() && response.size != 0 && response.fenceType == FenceType.local) {
@@ -489,14 +487,14 @@ class TraceUtils(
                             Log.i(TAG, "已经存在围栏：$circleFenceInfo")
                             circleFenceInfo.createOverlay(baiduMap)
                         } else {
-                            Log.i(TAG, "创建围栏：$circleFenceInfo")
-                            createFence(circleFenceInfo)
+                            Log.i(TAG, "创建本地围栏：$circleFenceInfo")
+                            createLocalFence(circleFenceInfo)
                         }
                     }
                 } else {
                     mFenceInfoList.forEach {
-                        Log.i(TAG, "创建围栏：$it")
-                        createFence(it)
+                        Log.i(TAG, "创建本地围栏：$it")
+                        createLocalFence(it)
                     }
                 }
             }
@@ -504,35 +502,40 @@ class TraceUtils(
     }
 
     /**
-     * 创建围栏
-     *
-     * @param fenceName 围栏名称
-     * @param lat 围栏圆心纬度
-     * @param lng 围栏圆心经度
-     * @param radius 围栏半径（单位 : 米）
+     * 创建本地围栏
      */
-    private fun createFence(circleFenceInfo: CircleFenceInfo) {
-        // 请求标识
-        val tag = getTag()
+    private fun createLocalFence(circleFenceInfo: CircleFenceInfo) {
         // 围栏圆心
-        val center = com.baidu.trace.model.LatLng(circleFenceInfo.latLng?.latitude
-                ?: 0.0, circleFenceInfo.latLng?.longitude ?: 0.0)
+        val latitude = circleFenceInfo.latLng?.latitude ?: 0.0
+        val longitude = circleFenceInfo.latLng?.longitude ?: 0.0
+        val center = com.baidu.trace.model.LatLng(latitude, longitude)
+        // 半径
+        val radius = circleFenceInfo.radius.toDouble()
         // 去噪精度，则定位精度大于denoise米的轨迹点都不会参与围栏计算。
         val denoise = 30
         // 坐标类型
         val coordType = CoordType.bd09ll
         // 创建本地圆形围栏
-        val localCircleFenceRequest = CreateFenceRequest.buildLocalCircleRequest(tag, serviceId, circleFenceInfo.name, myEntityName, center, circleFenceInfo.radius.toDouble(), denoise, coordType)
+        val localCircleFenceRequest = CreateFenceRequest.buildLocalCircleRequest(
+                getTag(),
+                serviceId,
+                circleFenceInfo.name,
+                myEntityName,
+                center,
+                radius,
+                denoise,
+                coordType
+        )
         // 创建本地圆形围栏
         mTraceClient.createFence(localCircleFenceRequest, object : OnFenceListenerAdapter() {
             override fun onCreateFenceCallback(response: CreateFenceResponse) {
-                //创建围栏响应结果,能获取围栏的一些信息
+                // 创建围栏响应结果,能获取围栏的一些信息
                 if (StatusCodes.SUCCESS != response.getStatus()) {
-                    Toast.makeText(context, "创建围栏失败", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "创建本地围栏失败", Toast.LENGTH_SHORT).show()
                     return
                 }
-                circleFenceInfo.id = response.fenceId//创建的围栏id
-                Log.i(TAG, "创建围栏成功：$circleFenceInfo")
+                circleFenceInfo.id = response.fenceId// 创建的围栏id
+                Log.i(TAG, "创建本地围栏成功：$circleFenceInfo。开始创建覆盖物。")
                 circleFenceInfo.createOverlay(baiduMap)
             }
         })
