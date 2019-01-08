@@ -204,11 +204,13 @@ class TraceUtils(private val context: Context,
         // 设置定位和打包周期
         mTraceClient.setInterval(gatherInterval, packInterval)
         mTraceClient.setOnTraceListener(mTraceListener)
+
+        // 清除缓存
         SPUtils.getInstance().init(context)
         SPUtils.getInstance().remove(KEY_IS_TRACE_STARTED)
         SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
 
-        // 点击围栏监听
+        // 设置点击围栏覆盖物的监听
         baiduMap.setOnMapClickListener(object : BaiduMap.OnMapClickListener {
             override fun onMapClick(p0: LatLng?) {
                 mFenceInfoList.forEach {
