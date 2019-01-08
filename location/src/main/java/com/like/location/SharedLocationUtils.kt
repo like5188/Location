@@ -409,10 +409,23 @@ class SharedLocationUtils(val baiduMapView: MapView,
         var lng = 0.0// 纬度
     }
 
-    fun queryFenceHistoryAlarmInfo() {
-        mTraceUtils.queryFenceHistoryAlarmInfo()
+    /**
+     * 查询本地围栏历史告警信息
+     *
+     * @param startTime         开始时间戳，默认为当前时间以前24小时
+     * @param endTime           结束时间戳，默认为当前时间
+     */
+    fun queryFenceHistoryAlarmInfo(
+            startTime: Long = System.currentTimeMillis() / 1000 - 24 * 60 * 60,
+            endTime: Long = System.currentTimeMillis() / 1000
+    ) {
+        mTraceUtils.queryFenceHistoryAlarmInfo(startTime, endTime)
     }
 
+    /**
+     * 在本地查询被监控者状态
+     * 查询被监控者是在围栏内或围栏外
+     */
     fun queryMonitoredStatus() {
         mTraceUtils.queryMonitoredStatus()
     }
