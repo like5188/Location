@@ -35,26 +35,30 @@
         android:value="你应用的apiKey" />  
 ```
 
-3、使用
+3、危险权限申请
+```java
+    Manifest.permission.READ_PHONE_STATE,
+    Manifest.permission.ACCESS_COARSE_LOCATION,
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.WRITE_EXTERNAL_STORAGE
+```
+
+4、定位
+```java
+    LocationUtils.getInstance(this).addListener()
+    LocationUtils.getInstance(this).start()
+    LocationUtils.getInstance(this).stop()
+    LocationUtils.getInstance(this).restart()
+```
+
+5、地图使用
 ```java
     在Application中
     // 在使用 SDK 各组间之前初始化 context 信息，传入 ApplicationContext
     SDKInitializer.initialize(this)
-
-    mLocationUtils = new LocationUtils(this, new MyLocationListener() {
-        @Override
-        public void onReceiveLocation(BDLocation location) {
-            super.onReceiveLocation(location);
-            if (location != null) {
-                Logger.i("Location", location.getCity());
-            }
-            mLocationUtils.stop();
-        }
-    });
-    mLocationUtils.start();
 ```
 
-4、Proguard
+6、Proguard
 ```java
     -dontwarn com.tencent.smtt.**
 ```

@@ -5,6 +5,7 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import com.baidu.mapapi.SDKInitializer
 import com.like.location.LocationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
 
@@ -14,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
+        SDKInitializer.initialize(this)
         checkPermissionsAndRun(
                 "hahaha",
                 1,
