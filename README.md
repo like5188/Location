@@ -28,11 +28,12 @@
     }
 ```
 
-2、在AndroidManifest.xml文件的application标签内添加
+2、在build.gradle中添加apiKey
 ```java
-    <meta-data
-        android:name="com.baidu.lbsapi.API_KEY"
-        android:value="你应用的apiKey" />  
+    defaultConfig {
+        ...
+        manifestPlaceholders = [baiduApiKey: "你自己的apiKey"]
+    }
 ```
 
 3、危险权限申请
@@ -56,14 +57,15 @@
     NavigationUtils.navigation(this, 29.0, 106.0)
 ```
 
-6、鹰眼轨迹
+6、好友位置实时共享
 ```java
     在Application中
     // 在使用 SDK 各组间之前初始化 context 信息，传入 ApplicationContext
     SDKInitializer.initialize(this)
+
+    SharedLocationUtils
 ```
 
-6、Proguard
+7、Proguard
 ```java
-    -dontwarn com.tencent.smtt.**
 ```
