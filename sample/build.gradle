@@ -51,6 +51,7 @@ android {
     dataBinding {
         enabled true
     }
+
 }
 
 dependencies {
@@ -62,7 +63,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // easypermissions
-    api 'pub.devrel:easypermissions:1.1.3'
+    implementation 'pub.devrel:easypermissions:1.1.3'
 
     implementation project(':location')
 }
