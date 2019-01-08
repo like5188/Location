@@ -54,7 +54,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
     private val markerInfos = mutableListOf<MarkerInfo>()// 需要显示在地图上的marker，不包括自己
     private val mMarkers = mutableListOf<Marker>()
     private val mGlideUtils: GlideUtils by lazy { GlideUtils(context) }
-    private var mTraceUtils: TraceUtils? = null
+    private val mTraceUtils: TraceUtils by lazy { TraceUtils(context, baiduMapView.map, serviceId, myEntityName) }
     private var disposable: Disposable? = null
     private var circleFenceInfoList: List<CircleFenceInfo>? = null
     // 传感器相关
@@ -93,8 +93,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
     }
 
     init {
-        mTraceUtils = TraceUtils(context, baiduMapView.map, serviceId, myEntityName)
-        mTraceUtils?.startTrace()
+        mTraceUtils.startTrace()
 
         fun startLocationMy(myBitmapDescriptor: BitmapDescriptor) {
             initBaiduMap(baiduMapView, myBitmapDescriptor)
@@ -169,7 +168,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
         if (isFirstLoc) {
             isFirstLoc = false
             this.circleFenceInfoList = circleFenceInfoList
-            mTraceUtils?.createLocalFences(circleFenceInfoList)
+            mTraceUtils.createLocalFences(circleFenceInfoList)
             // 设置第一个围栏为地图中心
             setMapCenter(circleFenceInfoList[0].latLng)
         }
@@ -200,7 +199,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
     private fun queryMarkers() {
         val entityNames = getEntityNames()
         if (entityNames.isNotEmpty()) {
-            mTraceUtils?.queryEntityList(entityNames, listener = object : OnEntityListener() {
+            mTraceUtils.queryEntityList(entityNames, listener = object : OnEntityListener() {
                 override fun onEntityListCallback(p0: EntityListResponse?) {
                     Log.d(TAG, "onEntityListCallback ${p0?.entities}")
                     if (p0 == null || p0.entities == null || p0.entities.isEmpty()) {
@@ -387,7 +386,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
 
         mLocationUtils.stop()
 
-        mTraceUtils?.destroy()
+        mTraceUtils.destroy()
 
         mMarkers.clear()
 
@@ -411,11 +410,11 @@ class SharedLocationUtils(val baiduMapView: MapView,
     }
 
     fun queryFenceHistoryAlarmInfo() {
-        mTraceUtils?.queryFenceHistoryAlarmInfo()
+        mTraceUtils.queryFenceHistoryAlarmInfo()
     }
 
     fun queryMonitoredStatus() {
-        mTraceUtils?.queryMonitoredStatus()
+        mTraceUtils.queryMonitoredStatus()
     }
 
 }
