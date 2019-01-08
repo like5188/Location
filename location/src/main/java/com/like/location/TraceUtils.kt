@@ -212,7 +212,7 @@ class TraceUtils(private val context: Context,
         baiduMap.setOnMapClickListener(object : BaiduMap.OnMapClickListener {
             override fun onMapClick(p0: LatLng?) {
                 mFenceInfoList.forEach {
-                    if (it.clickInOverlay(p0)) {
+                    if (it.isClickedInOverlay(p0)) {
                         LiveDataBus.post(LocationConstants.TAG_CLICK_FENCE_OVERLAY, it)
                         return@forEach
                     }

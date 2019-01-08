@@ -9,35 +9,60 @@ import com.baidu.mapapi.map.Stroke
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.utils.DistanceUtil
 
+/**
+ * 圆形围栏信息
+ */
 class CircleFenceInfo {
+    /**
+     * 围栏id
+     */
     var id = 0L// 对应fenceId
+    /**
+     * 围栏名字
+     */
     var name = ""
+    /**
+     * 围栏中心经纬度
+     */
     var latLng: LatLng? = null
+    /**
+     * 围栏半径
+     */
     var radius = 0
+    /**
+     * 围栏覆盖物
+     */
     var fenceOverlay: Overlay? = null
     var extra: Bundle? = null
 
-    fun clickInOverlay(latLng: LatLng?): Boolean {
+    /**
+     * 是否点击在围栏覆盖物范围内
+     */
+    fun isClickedInOverlay(latLng: LatLng?): Boolean {
         if (this.latLng == null || latLng == null) {
             return false
         }
         return DistanceUtil.getDistance(latLng, this.latLng) <= radius
     }
 
+    /**
+     * 销毁围栏覆盖物
+     */
     fun destroy() {
         fenceOverlay?.remove()
     }
 
     /**
-     * 创建围栏的覆盖物，一个蓝色圆圈
+     * 创建一个围栏覆盖物
      */
-    fun createOverlay(baiduMap: BaiduMap) {
+    fun createOverlay(baiduMap: BaiduMap, bgColor: Int = 0x6600A7FF, strokeWidth: Int = 1, strokeColor: Int = Color.rgb(0x00, 0xA7, 0xFF)) {
         if (fenceOverlay == null) {
-            val options = CircleOptions().fillColor(0x6600A7FF)
-                    .stroke(Stroke(1, Color.rgb(0x00, 0xA7, 0xFF)))
-                    .center(latLng)
-                    .radius(radius)
-            fenceOverlay = baiduMap.addOverlay(options)
+            fenceOverlay = baiduMap.addOverlay(
+                    CircleOptions().fillColor(bgColor)
+                            .stroke(Stroke(strokeWidth, strokeColor))
+                            .center(latLng)
+                            .radius(radius)
+            )
         }
     }
 
