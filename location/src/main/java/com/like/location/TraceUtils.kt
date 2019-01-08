@@ -1,5 +1,6 @@
 package com.like.location
 
+import android.R.attr.tag
 import android.content.Context
 import android.net.ConnectivityManager
 import android.util.Log
@@ -14,9 +15,7 @@ import com.baidu.trace.api.entity.FilterCondition
 import com.baidu.trace.api.entity.LocRequest
 import com.baidu.trace.api.entity.OnEntityListener
 import com.baidu.trace.api.fence.*
-import com.baidu.trace.api.track.HistoryTrackRequest
-import com.baidu.trace.api.track.LatestPointRequest
-import com.baidu.trace.api.track.OnTrackListener
+import com.baidu.trace.api.track.*
 import com.baidu.trace.model.*
 import com.like.livedatabus.LiveDataBus
 import com.like.location.entity.CircleFenceInfo
@@ -30,19 +29,47 @@ import java.util.concurrent.atomic.AtomicInteger
  * 鹰眼轨迹管理工具类
  * 注意：地图只支持Android v4.0以上系统
  *
+ * service：
+ * 一个service（即鹰眼轨迹服务）对应一个轨迹管理系统，一个service里可管理多个终端设备（即entity），
+ * service的唯一标识符是service_id。
+ * 一个开发者最多可创建10个service
+ *
+ * entity：
+ * 一个entity代表现实中一个被追踪轨迹的终端设备，它可以是一个人、一辆车或者任何运动物体。
+ * 同一个service中，entity以entity_name作为唯一标识。
+ * 一个service至多同时管理100万个entity。
+ * 鹰眼Web API提供了entity的增、删、改、查接口。
+ *
+ * fence：
+ * fence即地理围栏，是指一定范围（如：圆形、多边形、线型、行政区）的虚拟地理区域。
+ * 目前客户端围栏仅支持圆形围栏
+ * 当entity进入/离开该区域时，鹰眼将自动推送报警至开发者。开发者接收到报警后，可进行业务处理。
+ * 一个entity最多可创建100个私有地理围栏，一个service可创建1000个公共围栏。
+ * 鹰眼API和SDK提供了fence的增删改查接口，以及查询被监控者在围栏内/外、查询历史报警信息等接口。
+ *
+ * track：
+ * entity移动所产生的连续轨迹被称为track，track由一系列轨迹点（point）组成。
+ * 轨迹点数量无限制。
+ * 鹰眼Web API提供了添加轨迹点、批量添加轨迹点、查询历史轨迹接口。使用鹰眼Android SDK时，SDK会根据开发者设定的频率定位，回传轨迹点。
+ *
  * @param context
  * @param baiduMap
- * @param serviceId 轨迹服务ID
- * @param myEntityName
- * @param gatherInterval 定位周期(单位:秒)，5的倍数，默认为5秒
- * @param packInterval 打包回传周期(单位:秒)，5的倍数，回传周期最大不要超过定位周期的10倍，建议设置为定位周期的整数倍，默认为10秒
+ * @param serviceId         轨迹服务ID
+ * @param myEntityName      设备标识
+ * @param gatherInterval    定位周期(单位:秒)
+ * 多久定位一次，在定位周期大于15s时，SDK会将定位周期设置为5的倍数，默认为5秒
+ * @param packInterval      打包回传周期(单位:秒)
+ * 鹰眼为节省电量和流量，并不是定位一次就回传一次数据，而是隔段时间将一批定位数据打包压缩回传。
+ * 回传周期最大不要超过定位周期的10倍，回传周期不能小于定位周期，否则回传不生效；回传周期建议设置为定位周期的整数倍。​默认为10秒。
  */
-class TraceUtils(private val context: Context,
-                 private val baiduMap: BaiduMap,
-                 private val serviceId: Long,
-                 private val myEntityName: String,
-                 private val gatherInterval: Int = LocationConstants.DEFAULT_GATHER_INTERVAL,
-                 private val packInterval: Int = LocationConstants.DEFAULT_PACK_INTERVAL) {
+class TraceUtils(
+        private val context: Context,
+        private val baiduMap: BaiduMap,
+        private val serviceId: Long,
+        private val myEntityName: String,
+        private val gatherInterval: Int = LocationConstants.DEFAULT_GATHER_INTERVAL,
+        private val packInterval: Int = LocationConstants.DEFAULT_PACK_INTERVAL
+) {
     companion object {
         private val TAG = TraceUtils::class.java.simpleName
         const val KEY_IS_TRACE_STARTED = "is_trace_started"
@@ -51,7 +78,6 @@ class TraceUtils(private val context: Context,
 
     private val mSequenceGenerator = AtomicInteger()
     private val mFenceInfoList = mutableListOf<CircleFenceInfo>()
-    private val locRequest: LocRequest by lazy { LocRequest(serviceId) }
     // 是否需要对象存储服务，默认为：false，关闭对象存储服务。注：鹰眼 Android SDK v3.0以上版本支持随轨迹上传图像等对象数据，若需使用此功能，该参数需设为 true，且需导入bos-android-sdk-1.0.3.jar。
     private val isNeedObjectStorage = false
     // 初始化轨迹服务
@@ -177,14 +203,14 @@ class TraceUtils(private val context: Context,
             /**
              * 获取报警推送消息
              */
-            val alarmPushInfo = message.getFenceAlarmPushInfo()
-            alarmPushInfo.getFenceId()//获取围栏id
-            alarmPushInfo.getMonitoredPerson()//获取监控对象标识
-            alarmPushInfo.getFenceName()//获取围栏名称
-            alarmPushInfo.getPrePoint()//获取上一个点经度信息
-            val alarmPoin = alarmPushInfo.getCurrentPoint()//获取报警点经纬度等信息
-            alarmPoin.getCreateTime()//获取此位置上传到服务端时间
-            alarmPoin.getLocTime()//获取定位产生的原始时间
+            val alarmPushInfo = message.fenceAlarmPushInfo
+            alarmPushInfo.fenceId//获取围栏id
+            alarmPushInfo.monitoredPerson//获取监控对象标识
+            alarmPushInfo.fenceName//获取围栏名称
+            alarmPushInfo.prePoint//获取上一个点经度信息
+            val alarmPoint = alarmPushInfo.currentPoint//获取报警点经纬度等信息
+            alarmPoint.createTime//获取此位置上传到服务端时间
+            alarmPoint.locTime//获取定位产生的原始时间
 
             val curCircleFenceInfo = getCircleFenceInfoByFenceId(alarmPushInfo.fenceId)
             when (alarmPushInfo.monitoredAction) {
@@ -201,14 +227,17 @@ class TraceUtils(private val context: Context,
     }
 
     init {
-        // 设置定位和打包周期
-        mTraceClient.setInterval(gatherInterval, packInterval)
-        mTraceClient.setOnTraceListener(mTraceListener)
-
         // 清除缓存
         SPUtils.getInstance().init(context)
         SPUtils.getInstance().remove(KEY_IS_TRACE_STARTED)
         SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
+
+        // 设置定位和打包周期
+        mTraceClient.setInterval(gatherInterval, packInterval)
+        mTraceClient.setOnTraceListener(mTraceListener)
+
+        // 查询轨迹接口提供了HTTP和HTTPS两种协议。使用HTTPS时，可能会降低请求效率。
+        mTraceClient.setProtocolType(ProtocolType.HTTP)
 
         // 设置点击围栏覆盖物的监听
         baiduMap.setOnMapClickListener(object : BaiduMap.OnMapClickListener {
@@ -235,6 +264,8 @@ class TraceUtils(private val context: Context,
 
     /**
      * 开启鹰眼服务，启动鹰眼 service
+     *
+     * 调用startTrace()后，SDK会与服务端建立连接，并将已缓存的轨迹数据上传到服务端，但不会进行定位采集，即尚未开始轨迹追踪。
      */
     fun startTrace() {
         mTraceClient.startTrace(mTrace, null)
@@ -242,6 +273,9 @@ class TraceUtils(private val context: Context,
 
     /**
      * 开启轨迹采集，启动轨迹追踪。至此，正式开启轨迹追踪。
+     *
+     * 在采集过程中，若出现网络中断、连上不可上网的Wi-Fi，或网络频繁切换时，SDK都将自动开启缓存模式，将采集的轨迹数据保存到数据库中，并自动监听网络，待联网时自动回传缓存数据。
+     *
      * 注意：因为startTrace与startGather是异步执行，且startGather依赖startTrace执行开启服务成功，
      * 所以建议startGather在public void onStartTraceCallback(int errorNo, String message)回调返回0后，
      * 再进行调用执行，否则会出现服务开启失败12002的错误。
@@ -268,16 +302,35 @@ class TraceUtils(private val context: Context,
     }
 
     /**
-     * 查询myEntityName在指定时间范围内的历史轨迹
-     *
-     * @param tag       请求标识
-     * @param startTime 开始时间戳(单位：秒)，默认为当前时间以前12小时
-     * @param endTime   结束时间戳(单位：秒)，默认为当前时间
-     * @param listener  轨迹监听器
+     * 设置轨迹采集和打包上传的间隔。可随时改变。
      */
-    fun queryHistoryTrack(tag: Int = 1, startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60, endTime: Long = System.currentTimeMillis() / 1000, listener: OnTrackListener) {
+    fun setInterval(gatherInterval: Int, packInterval: Int) {
+        mTraceClient.setInterval(gatherInterval, packInterval)
+    }
+
+    /**
+     * 查询历史轨迹
+     * 查询一个被追踪者某时间段的历史轨迹。
+     *
+     * @param entityName        entity标识
+     * @param startTime         开始时间戳，默认为当前时间以前12小时
+     * @param endTime           结束时间戳，默认为当前时间
+     * @param isProcessed       是否纠偏
+     * @param transportMode     交通方式。默认为驾车
+     * @param supplementMode    里程填充方式。默认为驾车
+     * @param listener          轨迹监听器
+     */
+    fun queryHistoryTrack(
+            entityName: String,
+            startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60,
+            endTime: Long = System.currentTimeMillis() / 1000,
+            isProcessed: Boolean = false,
+            transportMode: TransportMode = TransportMode.driving,
+            supplementMode: SupplementMode = SupplementMode.driving,
+            listener: OnTrackListener
+    ) {
         // 创建历史轨迹请求实例
-        val historyTrackRequest = HistoryTrackRequest(tag, serviceId, myEntityName)
+        val historyTrackRequest = HistoryTrackRequest(getTag(), serviceId, entityName)
 
         // 设置轨迹查询起止时间
         // 设置开始时间
@@ -285,15 +338,112 @@ class TraceUtils(private val context: Context,
         // 设置结束时间
         historyTrackRequest.endTime = endTime
 
+        if (isProcessed) {
+            // 设置需要纠偏
+            historyTrackRequest.isProcessed = true
+
+            // 创建纠偏选项实例
+            val processOption = ProcessOption()
+            // 设置需要去噪
+            processOption.isNeedDenoise = true
+            // 设置需要抽稀
+            processOption.isNeedVacuate = true
+            // 设置需要绑路
+            processOption.isNeedMapMatch = true
+            // 设置精度过滤值(定位精度大于100米的过滤掉)
+            processOption.radiusThreshold = 100
+            // 设置交通方式为驾车
+            processOption.transportMode = transportMode
+            // 设置纠偏选项
+            historyTrackRequest.processOption = processOption
+
+            // 设置里程填充方式为驾车
+            historyTrackRequest.supplementMode = supplementMode
+        }
+
         // 查询历史轨迹
         mTraceClient.queryHistoryTrack(historyTrackRequest, listener)
     }
 
     /**
-     * 设置轨迹采集和打包上传的间隔
+     * 计算指定时间段内的轨迹里程
+     *
+     * @param entityName        entity标识
+     * @param startTime         开始时间戳，默认为当前时间以前12小时
+     * @param endTime           结束时间戳，默认为当前时间
+     * @param isProcessed       是否纠偏
+     * @param transportMode     交通方式。默认为驾车
+     * @param supplementMode    里程填充方式。默认为驾车
+     * @param listener          轨迹监听器
      */
-    fun setInterval(gatherInterval: Int, packInterval: Int) {
-        mTraceClient.setInterval(gatherInterval, packInterval)
+    fun queryDistance(
+            entityName: String,
+            startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60,
+            endTime: Long = System.currentTimeMillis() / 1000,
+            isProcessed: Boolean = false,
+            transportMode: TransportMode = TransportMode.driving,
+            supplementMode: SupplementMode = SupplementMode.driving,
+            listener: OnTrackListener
+    ) {
+        // 创建里程查询请求实例
+        val distanceRequest = DistanceRequest(tag, serviceId, entityName)
+
+        // 设置开始时间
+        distanceRequest.startTime = startTime
+        // 设置结束时间
+        distanceRequest.endTime = endTime
+
+        if (isProcessed) {
+            // 设置需要纠偏
+            distanceRequest.isProcessed = true
+
+            // 创建纠偏选项实例
+            val processOption = ProcessOption()
+            // 设置需要去噪
+            processOption.isNeedDenoise = true
+            // 设置需要绑路
+            processOption.isNeedMapMatch = true
+            // 设置交通方式为驾车
+            processOption.transportMode = transportMode
+            // 设置纠偏选项
+            distanceRequest.processOption = processOption
+
+            // 设置里程填充方式为驾车
+            distanceRequest.supplementMode = supplementMode
+        }
+
+        // 查询里程
+        mTraceClient.queryDistance(distanceRequest, listener)
+    }
+
+    /**
+     * 查询实时位置
+     * 根据筛选条件（FilterCondition）查找符合条件的entity列表
+     *
+     * 1. 查询某一个 entity 的详细信息，包括实时位置
+     * 2. 查询所有设备信息和实时位置，如轨迹管理台的entity列表面板
+     * 3. 查询在线和离线设备
+     *
+     * @param entityNames   entity标识列表
+     * @param activeTime    指定时间内定位且上传了轨迹点的entity。默认30秒
+     */
+    fun queryEntityList(entityNames: List<String>? = null, activeTime: Int = 30, listener: OnEntityListener) {
+        // 过滤条件
+        val filterCondition = FilterCondition()
+        filterCondition.entityNames = entityNames
+        filterCondition.activeTime = (System.currentTimeMillis() / 1000 - activeTime)// 只查询30秒之内活跃的
+        // 返回结果坐标类型
+        val coordTypeOutput = CoordType.bd09ll
+        // 分页索引
+        val pageIndex = 1
+        // 分页大小
+        val pageSize = 1000
+
+        // 创建Entity列表请求实例
+        val request = EntityListRequest(getTag(), serviceId, filterCondition, coordTypeOutput, pageIndex, pageSize)
+
+        // 查询Entity列表
+        mTraceClient.queryEntityList(request, listener)
     }
 
     /**
@@ -311,45 +461,9 @@ class TraceUtils(private val context: Context,
             request.processOption = processOption
             mTraceClient.queryLatestPoint(request, trackListener)
         } else {
-            mTraceClient.queryRealTimeLoc(locRequest, entityListener)
+            mTraceClient.queryRealTimeLoc(LocRequest(serviceId), entityListener)
         }
     }
-
-    /**
-     * 获取网络类型
-     */
-    private fun isNetworkAvailable(context: Context): Boolean {
-        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val info = connectivity.activeNetworkInfo
-        return info != null && info.isConnected
-    }
-
-    /**
-     * 查询其它设备
-     *
-     * @param entityNames   指定的entity名字
-     * @param activeTime    指定时间内活跃的entity。默认30秒
-     */
-    fun queryEntityList(entityNames: List<String>? = null, activeTime: Int = 30, listener: OnEntityListener) {
-        // 过滤条件
-        val filterCondition = FilterCondition()
-        filterCondition.entityNames = entityNames
-        filterCondition.activeTime = (System.currentTimeMillis() / 1000 - activeTime)// 只查询30秒之内活跃的
-        // 返回结果坐标类型
-        val coordTypeOutput = CoordType.bd09ll
-        // 分页索引
-        val pageIndex = 1
-        // 分页大小
-        val pageSize = 100
-
-        // 创建Entity列表请求实例
-        val request = EntityListRequest(getTag(), serviceId, filterCondition, coordTypeOutput, pageIndex, pageSize)
-
-        // 查询Entity列表
-        mTraceClient.queryEntityList(request, listener)
-    }
-
-    private fun getTag() = mSequenceGenerator.incrementAndGet()
 
     fun createFences(circleFenceInfoList: List<CircleFenceInfo>) {
         mFenceInfoList.clear()
@@ -424,24 +538,6 @@ class TraceUtils(private val context: Context,
         })
     }
 
-    private fun getCircleFenceInfoByFenceId(fenceId: Long): CircleFenceInfo? {
-        val filter = mFenceInfoList.filter { it.id == fenceId }
-        return if (filter.isNotEmpty()) {
-            filter[0]
-        } else {
-            null
-        }
-    }
-
-    private fun getFenceIds(): List<Long> {
-        val fenceIds = mutableListOf<Long>()
-        mFenceInfoList.mapTo(fenceIds) {
-            Log.w(TAG, it.toString())
-            it.id
-        }
-        return fenceIds
-    }
-
     // 查询围栏历史告警信息
     fun queryFenceHistoryAlarmInfo() {
         val request = HistoryAlarmRequest.buildLocalRequest(
@@ -502,6 +598,35 @@ class TraceUtils(private val context: Context,
                 Toast.makeText(context, sb.toString(), Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun getTag() = mSequenceGenerator.incrementAndGet()
+
+    private fun getCircleFenceInfoByFenceId(fenceId: Long): CircleFenceInfo? {
+        val filter = mFenceInfoList.filter { it.id == fenceId }
+        return if (filter.isNotEmpty()) {
+            filter[0]
+        } else {
+            null
+        }
+    }
+
+    private fun getFenceIds(): List<Long> {
+        val fenceIds = mutableListOf<Long>()
+        mFenceInfoList.mapTo(fenceIds) {
+            Log.w(TAG, it.toString())
+            it.id
+        }
+        return fenceIds
+    }
+
+    /**
+     * 获取网络类型
+     */
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val info = connectivity.activeNetworkInfo
+        return info != null && info.isConnected
     }
 
 }
