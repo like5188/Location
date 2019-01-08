@@ -227,7 +227,7 @@ class TraceUtils(private val context: Context,
         })
     }
 
-    fun destory() {
+    fun destroy() {
         mFenceInfoList.forEach { it.destroy() }
         stopGather()
         stopTrace()

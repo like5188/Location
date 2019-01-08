@@ -387,7 +387,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
 
         mLocationUtils.stop()
 
-        mTraceUtils?.destory()
+        mTraceUtils?.destroy()
 
         mMarkers.clear()
 
