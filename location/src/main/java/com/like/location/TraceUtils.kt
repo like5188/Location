@@ -95,8 +95,8 @@ class TraceUtils(
     private val mTraceListener: OnTraceListener = object : OnTraceListener {
         /**
          * 绑定服务回调接口
-         * @param errorNo  状态码
-         * @param message 消息
+         * @param p0    状态码
+         * @param p1    消息
          *                <p>
          *                <pre>0：成功 </pre>
          *                <pre>1：失败</pre>
@@ -107,8 +107,8 @@ class TraceUtils(
 
         /**
          * 开启服务回调接口
-         * @param errorNo 状态码
-         * @param message 消息
+         * @param status    状态码
+         * @param message   消息
          *                <p>
          *                <pre>0：成功 </pre>
          *                <pre>10000：请求发送失败</pre>
@@ -131,8 +131,8 @@ class TraceUtils(
 
         /**
          * 停止服务回调接口
-         * @param errorNo 状态码
-         * @param message 消息
+         * @param status    状态码
+         * @param message   消息
          *                <p>
          *                <pre>0：成功</pre>
          *                <pre>11000：请求发送失败</pre>
@@ -153,8 +153,8 @@ class TraceUtils(
 
         /**
          * 开启采集回调接口
-         * @param errorNo 状态码
-         * @param message 消息
+         * @param status    状态码
+         * @param message   消息
          *                <p>
          *                <pre>0：成功</pre>
          *                <pre>12000：请求发送失败</pre>
@@ -172,8 +172,8 @@ class TraceUtils(
 
         /**
          * 停止采集回调接口
-         * @param errorNo 状态码
-         * @param message 消息
+         * @param status    状态码
+         * @param message   消息
          *                <p>
          *                <pre>0：成功</pre>
          *                <pre>13000：请求发送失败</pre>
@@ -192,8 +192,8 @@ class TraceUtils(
         /**
          * 推送消息回调接口
          *
-         * @param messageType 状态码
-         * @param pushMessage 消息
+         * @param messageNo 状态码
+         * @param message   消息
          *                  <p>
          *                  <pre>0x01：配置下发</pre>
          *                  <pre>0x02：语音消息</pre>
@@ -319,7 +319,6 @@ class TraceUtils(
      * 查询历史轨迹
      * 查询一个被追踪者某时间段的历史轨迹。
      *
-     * @param entityName        entity标识
      * @param startTime         开始时间戳，默认为当前时间以前12小时
      * @param endTime           结束时间戳，默认为当前时间
      * @param isProcessed       是否纠偏
@@ -374,7 +373,6 @@ class TraceUtils(
     /**
      * 计算指定时间段内的轨迹里程
      *
-     * @param entityName        entity标识
      * @param startTime         开始时间戳，默认为当前时间以前12小时
      * @param endTime           结束时间戳，默认为当前时间
      * @param isProcessed       是否纠偏
@@ -547,7 +545,6 @@ class TraceUtils(
     /**
      * 查询本地围栏历史告警信息
      *
-     * @param entityName        entity标识
      * @param startTime         开始时间戳，默认为当前时间以前24小时
      * @param endTime           结束时间戳，默认为当前时间
      */
@@ -584,8 +581,6 @@ class TraceUtils(
     /**
      * 在本地查询被监控者状态
      * 查询被监控者是在围栏内或围栏外
-     *
-     * @param monitoredPerson   被监控者
      */
     fun queryMonitoredStatus() {
         val request = MonitoredStatusRequest.buildLocalRequest(
