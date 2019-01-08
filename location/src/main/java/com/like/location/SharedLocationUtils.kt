@@ -30,13 +30,13 @@ import java.io.Serializable
  * 共享位置管理工具类
  * 注意：需要在Activity的相应生命周期调用相应的方法
  *
- * @param baiduMapView 百度的MapView
- * @param serviceId 轨迹服务id
- * @param myEntityName 自己的entityName，一般为userId
- * @param myIconResId 自己的图标
- * @param myIconUrl 自己的图标
- * @param defaultIconResId marker的默认icon资源id
- * @param period 查询好友数据的周期，毫秒，默认5000
+ * @param baiduMapView          百度的MapView
+ * @param serviceId             轨迹服务id
+ * @param myEntityName          自己的entityName，一般为userId
+ * @param myIconResId           自己的图标
+ * @param myIconUrl             自己的图标
+ * @param defaultIconResId      marker的默认icon资源id
+ * @param period                查询好友数据的周期，毫秒，默认5000
  */
 class SharedLocationUtils(val baiduMapView: MapView,
                           val serviceId: Long,
@@ -169,7 +169,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
         if (isFirstLoc) {
             isFirstLoc = false
             this.circleFenceInfoList = circleFenceInfoList
-            mTraceUtils?.createFences(circleFenceInfoList)
+            mTraceUtils?.createLocalFences(circleFenceInfoList)
             // 设置第一个围栏为地图中心
             setMapCenter(circleFenceInfoList[0].latLng)
         }

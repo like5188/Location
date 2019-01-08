@@ -24,7 +24,6 @@ import com.like.location.util.LocationConstants
 import com.like.location.util.SPUtils
 import java.util.concurrent.atomic.AtomicInteger
 
-
 /**
  * 鹰眼轨迹管理工具类
  * 注意：地图只支持Android v4.0以上系统
@@ -42,8 +41,15 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * fence：
  * fence即地理围栏，是指一定范围（如：圆形、多边形、线型、行政区）的虚拟地理区域。
- * 客户端围栏支持：圆形
- * 服务端围栏支持：圆形、多边形、线型、行政区
+ * 客户端围栏：
+ * 围栏的创建、计算和报警均在SDK完成，在 GPS 定位成功的情况下，无需联网即可完成围栏运算。
+ * 可应用于手机终端网络不稳定情况下，仍需实时获取围栏报警的场景。
+ * 无需联网即可利用 GPS 轨迹点在手机本地进行围栏计算，APP 可及时收到报警信息进行相应的业务处理。
+ * 仅支持圆形围栏
+ * 服务端围栏：
+ * 围栏的创建、计算和报警的发起都在鹰眼服务端完成，依赖于轨迹点上传至服务端才能进行围栏进算。
+ * 相较于客户端围栏，服务端围栏报警推送方式更多样：支持推送至 SDK，也支持推送至开发者的服务端，同时还支持报警信息批量查询
+ * 支持圆形、多边形、线型、行政区
  * 当entity进入/离开该区域时，鹰眼将自动推送报警至开发者。开发者接收到报警后，可进行业务处理。
  * 一个entity最多可创建100个私有地理围栏，一个service可创建1000个公共围栏。
  * 鹰眼API和SDK提供了fence的增删改查接口，以及查询被监控者在围栏内/外、查询历史报警信息等接口。
@@ -322,7 +328,6 @@ class TraceUtils(
      * @param listener          轨迹监听器
      */
     fun queryHistoryTrack(
-            entityName: String,
             startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60,
             endTime: Long = System.currentTimeMillis() / 1000,
             isProcessed: Boolean = false,
@@ -331,7 +336,7 @@ class TraceUtils(
             listener: OnTrackListener
     ) {
         // 创建历史轨迹请求实例
-        val historyTrackRequest = HistoryTrackRequest(getTag(), serviceId, entityName)
+        val historyTrackRequest = HistoryTrackRequest(getTag(), serviceId, myEntityName)
 
         // 设置轨迹查询起止时间
         // 设置开始时间
@@ -378,7 +383,6 @@ class TraceUtils(
      * @param listener          轨迹监听器
      */
     fun queryDistance(
-            entityName: String,
             startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60,
             endTime: Long = System.currentTimeMillis() / 1000,
             isProcessed: Boolean = false,
@@ -387,7 +391,7 @@ class TraceUtils(
             listener: OnTrackListener
     ) {
         // 创建里程查询请求实例
-        val distanceRequest = DistanceRequest(tag, serviceId, entityName)
+        val distanceRequest = DistanceRequest(tag, serviceId, myEntityName)
 
         // 设置开始时间
         distanceRequest.startTime = startTime
@@ -466,26 +470,24 @@ class TraceUtils(
         }
     }
 
-    fun createFences(circleFenceInfoList: List<CircleFenceInfo>) {
+    fun createLocalFences(circleFenceInfoList: List<CircleFenceInfo>) {
+        if (circleFenceInfoList.isEmpty()) return
         mFenceInfoList.clear()
         mFenceInfoList.addAll(circleFenceInfoList)
-        if (mFenceInfoList.isNotEmpty())
-            queryFenceList()
-    }
 
-    /**
-     * 查询围栏
-     */
-    private fun queryFenceList() {
         val request = FenceListRequest.buildLocalRequest(getTag(), serviceId, myEntityName, null)
         mTraceClient.queryFenceList(request, object : OnFenceListenerAdapter() {
             override fun onFenceListCallback(response: FenceListResponse) {
-                if (StatusCodes.SUCCESS == response.getStatus() && response.size != 0 && response.fenceType == FenceType.local) {
+                if (
+                        StatusCodes.SUCCESS == response.getStatus() &&
+                        response.size != 0 &&
+                        response.fenceType == FenceType.local
+                ) {
                     mFenceInfoList.forEach { circleFenceInfo ->
                         val filter = response.fenceInfos.filter { it.circleFence.fenceName == circleFenceInfo.name }
                         if (filter.isNotEmpty()) {
                             circleFenceInfo.id = filter[0].circleFence.fenceId// 赋值围栏id
-                            Log.i(TAG, "已经存在围栏：$circleFenceInfo")
+                            Log.i(TAG, "本地已经存在围栏：$circleFenceInfo")
                             circleFenceInfo.createOverlay(baiduMap)
                         } else {
                             Log.i(TAG, "创建本地围栏：$circleFenceInfo")
@@ -542,13 +544,22 @@ class TraceUtils(
         })
     }
 
-    // 查询围栏历史告警信息
-    fun queryFenceHistoryAlarmInfo() {
+    /**
+     * 查询本地围栏历史告警信息
+     *
+     * @param entityName        entity标识
+     * @param startTime         开始时间戳，默认为当前时间以前24小时
+     * @param endTime           结束时间戳，默认为当前时间
+     */
+    fun queryFenceHistoryAlarmInfo(
+            startTime: Long = System.currentTimeMillis() / 1000 - 24 * 60 * 60,
+            endTime: Long = System.currentTimeMillis() / 1000
+    ) {
         val request = HistoryAlarmRequest.buildLocalRequest(
                 getTag(),
                 serviceId,
-                (System.currentTimeMillis() / 1000 - 60 * 60 * 24),
-                System.currentTimeMillis(),
+                startTime,
+                endTime,
                 myEntityName,
                 getFenceIds()
         )
@@ -570,7 +581,12 @@ class TraceUtils(
         })
     }
 
-    // 查询被监控者状态
+    /**
+     * 在本地查询被监控者状态
+     * 查询被监控者是在围栏内或围栏外
+     *
+     * @param monitoredPerson   被监控者
+     */
     fun queryMonitoredStatus() {
         val request = MonitoredStatusRequest.buildLocalRequest(
                 getTag(),
@@ -587,15 +603,15 @@ class TraceUtils(
                     when (it.monitoredStatus) {//获取状态
                         MonitoredStatus.`in` -> {// 监控的设备在围栏内
                             sb.append("在围栏内(围栏id：${it.fenceId})\n")
-                            Log.e(TAG, "监控的设备在围栏内(围栏id：${it.fenceId})")
+                            Log.e(TAG, "被监控者在围栏内(围栏id：${it.fenceId})")
                         }
                         MonitoredStatus.out -> {// 监控的设备在围栏外
                             sb.append("在围栏外(围栏id：${it.fenceId})\n")
-                            Log.e(TAG, "监控的设备在围栏外(围栏id：${it.fenceId})")
+                            Log.e(TAG, "被监控者在围栏外(围栏id：${it.fenceId})")
                         }
                         else -> {
                             sb.append("状态未知(围栏id：${it.fenceId})\n")
-                            Log.e(TAG, "监控的设备状态未知(围栏id：${it.fenceId})")
+                            Log.e(TAG, "被监控者状态未知(围栏id：${it.fenceId})")
                         }
                     }
                 }
