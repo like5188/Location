@@ -62,9 +62,9 @@ dependencies {
 
     implementation 'com.github.like5188.LiveDataBus:livedatabus:1.2.2'
 
-    implementation files('libs/BaiduLBS_Android.jar')// 百度地图
-    implementation files('libs/BaiduTraceSDK_v3_0_8.jar')
-    implementation files('libs/bos-android-sdk-1.0.3.jar')
+    api files('libs/BaiduLBS_Android.jar')// 百度地图
+    api files('libs/BaiduTraceSDK_v3_0_8.jar')
+    api files('libs/bos-android-sdk-1.0.3.jar')
 
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
 }

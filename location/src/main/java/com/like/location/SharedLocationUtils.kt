@@ -68,27 +68,28 @@ class SharedLocationUtils(val baiduMapView: MapView,
     private var locData: MyLocationData? = null
     private var isFirstLoc = true // 是否首次定位
     private val mLocationUtils: LocationUtils by lazy {
-        LocationUtils(context, object : MyLocationListener() {
-            override fun onReceiveLocation(location: BDLocation?) {
-                super.onReceiveLocation(location)
-                // map view 销毁后不在处理新接收的位置
-                if (location == null || baiduMapView.map == null) {
-                    return
-                }
-                mCurrentLat = location.latitude
-                mCurrentLng = location.longitude
-                mCurrentAccuracy = location.radius
+        LocationUtils.getInstance(context).addListener(
+                object : MyLocationListener {
+                    override fun onReceiveLocation(location: BDLocation?) {
+                        // map view 销毁后不在处理新接收的位置
+                        if (location == null || baiduMapView.map == null) {
+                            return
+                        }
+                        mCurrentLat = location.latitude
+                        mCurrentLng = location.longitude
+                        mCurrentAccuracy = location.radius
 
-                // 显示自己的位置，包括方向只是图标，精度圈
-                locData = MyLocationData.Builder()
-                        .accuracy(mCurrentAccuracy)
-                        .direction(mCurrentDirection.toFloat())// 此处设置开发者获取到的方向信息，顺时针0-360
-                        .latitude(mCurrentLat)
-                        .longitude(mCurrentLng)
-                        .build()
-                baiduMapView.map.setMyLocationData(locData)
-            }
-        })
+                        // 显示自己的位置，包括方向只是图标，精度圈
+                        locData = MyLocationData.Builder()
+                                .accuracy(mCurrentAccuracy)
+                                .direction(mCurrentDirection.toFloat())// 此处设置开发者获取到的方向信息，顺时针0-360
+                                .latitude(mCurrentLat)
+                                .longitude(mCurrentLng)
+                                .build()
+                        baiduMapView.map.setMyLocationData(locData)
+                    }
+                }
+        )
     }
 
     init {
