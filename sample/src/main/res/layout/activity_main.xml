@@ -11,35 +11,35 @@
             android:layout_height="wrap_content"
             android:onClick="start"
             android:text="开始定位"
-            android:textAllCaps="true" />
+            android:textAllCaps="false" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="stop"
             android:text="停止定位"
-            android:textAllCaps="true" />
+            android:textAllCaps="false" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="reStart"
             android:text="重新定位"
-            android:textAllCaps="true" />
+            android:textAllCaps="false" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="navigation"
             android:text="导航"
-            android:textAllCaps="true" />
+            android:textAllCaps="false" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="shareLocation"
             android:text="共享位置"
-            android:textAllCaps="true" />
+            android:textAllCaps="false" />
 
     </LinearLayout>
 
