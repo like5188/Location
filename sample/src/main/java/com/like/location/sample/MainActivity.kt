@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.like.location.LocationUtils
+import com.like.location.NavigationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -15,7 +16,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-        SDKInitializer.initialize(this)
+//        SDKInitializer.initialize(applicationContext)
         checkPermissionsAndRun(
                 "hahaha",
                 1,
@@ -38,6 +39,10 @@ class MainActivity : AppCompatActivity() {
 
     fun reStart(view: View) {
         LocationUtils.getInstance(this).restart()
+    }
+
+    fun navigation(view: View) {
+        NavigationUtils.navigation(this, 29.0, 106.0)
     }
 
 }

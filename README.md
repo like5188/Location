@@ -51,7 +51,12 @@
     LocationUtils.getInstance(this).restart()
 ```
 
-5、地图使用
+5、导航。自动选择高德、百度进行导航。
+```java
+    NavigationUtils.navigation(this, 29.0, 106.0)
+```
+
+6、鹰眼轨迹
 ```java
     在Application中
     // 在使用 SDK 各组间之前初始化 context 信息，传入 ApplicationContext

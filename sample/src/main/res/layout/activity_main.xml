@@ -27,6 +27,13 @@
             android:text="重新定位"
             android:textAllCaps="true" />
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="navigation"
+            android:text="导航"
+            android:textAllCaps="true" />
+
     </LinearLayout>
 
 </layout>
