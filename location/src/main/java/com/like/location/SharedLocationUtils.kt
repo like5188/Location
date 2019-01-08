@@ -105,9 +105,9 @@ class SharedLocationUtils(val baiduMapView: MapView,
             startLocationMy(BitmapDescriptorFactory.fromResource(myIconResId))
         } else if (myIconUrl.isNotEmpty()) {
             mGlideUtils.downloadImage(myIconUrl, {
-                startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView(it)))
+                startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker(it)))
             }, {
-                startLocationMy(BitmapDescriptorFactory.fromView(getMapHeaderView()))
+                startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker()))
             })
         }
     }
@@ -123,7 +123,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
     /**
      * 对marker图标进行了一层外圈包装
      */
-    private fun getMapHeaderView(bitmap: Bitmap? = null): View {
+    private fun wrapMarker(bitmap: Bitmap? = null): View {
         val binding = DataBindingUtil.inflate<ViewMapMarkerBinding>(LayoutInflater.from(context), R.layout.view_map_marker, null, false)
         if (bitmap != null) {
             binding.iv.setImageBitmap(bitmap)
@@ -177,8 +177,8 @@ class SharedLocationUtils(val baiduMapView: MapView,
 
     // 设置指定index的围栏为地图中心
     fun setMapCenter(index: Int) {
-        circleFenceInfoList?.let {
-            setMapCenter(it[index].latLng)
+        circleFenceInfoList?.get(index)?.let {
+            setMapCenter(it.latLng)
         }
     }
 
@@ -271,14 +271,14 @@ class SharedLocationUtils(val baiduMapView: MapView,
 
     private fun addMarker(baiduMap: BaiduMap, markerInfo: MarkerInfo, lat: Double, lng: Double) {
         if (markerInfo.iconUrl.isEmpty()) {
-            addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(getMapHeaderView()), markerInfo)
+            addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker()), markerInfo)
         } else {
             mGlideUtils.downloadImage(markerInfo.iconUrl,
                     { bitmap ->
-                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(getMapHeaderView(bitmap)), markerInfo)
+                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker(bitmap)), markerInfo)
                     },
                     {
-                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(getMapHeaderView()), markerInfo)
+                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker()), markerInfo)
                     }
             )
         }
