@@ -12,11 +12,6 @@ object LocationConstants {
     const val DEFAULT_PACK_INTERVAL = 10
 
     /**
-     * 实时定位间隔(单位:毫秒)
-     */
-    const val DEFAULT_LOCATION_INTERVAL = 3000
-
-    /**
      * 循环查询entityList的时间间隔(单位:毫秒)
      */
     const val DEFAULT_QUERY_ENTITY_LIST_INTERVAL = 5000L

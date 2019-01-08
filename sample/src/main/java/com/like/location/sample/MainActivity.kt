@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.like.location.LocationUtils
-import com.like.location.listener.MyLocationListener
 import com.like.location.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
