@@ -50,6 +50,7 @@ class TraceUtils(private val context: Context,
     }
 
     private val mSequenceGenerator = AtomicInteger()
+    private val mFenceInfoList = mutableListOf<CircleFenceInfo>()
     private val locRequest: LocRequest by lazy { LocRequest(serviceId) }
     // 是否需要对象存储服务，默认为：false，关闭对象存储服务。注：鹰眼 Android SDK v3.0以上版本支持随轨迹上传图像等对象数据，若需使用此功能，该参数需设为 true，且需导入bos-android-sdk-1.0.3.jar。
     private val isNeedObjectStorage = false
@@ -198,8 +199,6 @@ class TraceUtils(private val context: Context,
             }
         }
     }
-
-    private val mFenceInfoList = mutableListOf<CircleFenceInfo>()
 
     init {
         // 设置定位和打包周期
