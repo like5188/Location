@@ -242,33 +242,38 @@ class TraceUtils(private val context: Context,
 
     /**
      * 开启轨迹采集，启动轨迹追踪。至此，正式开启轨迹追踪。
-     * 注意：因为startTrace与startGather是异步执行，且startGather依赖startTrace执行开启服务成功，所以建议startGather在public void onStartTraceCallback(int errorNo, String message)回调返回错误码为0后，再进行调用执行，否则会出现服务开启失败12002的错误。
+     * 注意：因为startTrace与startGather是异步执行，且startGather依赖startTrace执行开启服务成功，
+     * 所以建议startGather在public void onStartTraceCallback(int errorNo, String message)回调返回0后，
+     * 再进行调用执行，否则会出现服务开启失败12002的错误。
      */
     fun startGather() {
         mTraceClient.startGather(null)
     }
 
     /**
-     * 停止轨迹服务：此方法将同时停止轨迹服务和轨迹采集，完全结束鹰眼轨迹服务。若需再次启动轨迹追踪，需重新启动服务和轨迹采集
-     */
-    fun stopTrace() {
-        mTraceClient.stopTrace(mTrace, null)
-    }
-
-    /**
-     * 停止轨迹采集：此方法将停止轨迹采集，但不停止轨迹服务（即，不再采集轨迹点了，但鹰眼 service 还存活）。若需再次启动轨迹追踪，直接调用mTraceClient.startGather()方法开启轨迹采集即可，无需再次启动轨迹服务。此方式可应用于频繁中断轨迹追踪的场景，可避免频繁启动服务。
+     * 停止轨迹采集：此方法将停止轨迹采集，但不停止轨迹服务（即，不再采集轨迹点了，但鹰眼 service 还存活）。
+     * 若需再次启动轨迹追踪，直接调用mTraceClient.startGather()方法开启轨迹采集即可，无需再次启动轨迹服务。
+     * 此方式可应用于频繁中断轨迹追踪的场景，可避免频繁启动服务。
      */
     fun stopGather() {
         mTraceClient.stopGather(null)
     }
 
     /**
-     * 查询myEntityName当前时间以前12小时的历史轨迹
+     * 停止轨迹服务：此方法将同时停止轨迹服务和轨迹采集，完全结束鹰眼轨迹服务。
+     * 若需再次启动轨迹追踪，需重新启动服务和轨迹采集
+     */
+    fun stopTrace() {
+        mTraceClient.stopTrace(mTrace, null)
+    }
+
+    /**
+     * 查询myEntityName在指定时间范围内的历史轨迹
      *
-     * @param tag 请求标识
+     * @param tag       请求标识
      * @param startTime 开始时间戳(单位：秒)，默认为当前时间以前12小时
-     * @param endTime 结束时间戳(单位：秒)，默认为当前时间
-     * @param listener 轨迹监听器
+     * @param endTime   结束时间戳(单位：秒)，默认为当前时间
+     * @param listener  轨迹监听器
      */
     fun queryHistoryTrack(tag: Int = 1, startTime: Long = System.currentTimeMillis() / 1000 - 12 * 60 * 60, endTime: Long = System.currentTimeMillis() / 1000, listener: OnTrackListener) {
         // 创建历史轨迹请求实例
@@ -295,7 +300,7 @@ class TraceUtils(private val context: Context,
      * 获取myEntityName当前位置
      */
     fun getCurrentLocation(entityListener: OnEntityListener, trackListener: OnTrackListener) {
-        // 网络连接正常，开启服务及采集，则查询纠偏后实时位置；否则进行实时定位
+        // 网络连接正常，开启服务及采集，则查询纠偏后的实时位置；否则进行实时定位
         if (isNetworkAvailable(context)
                 && SPUtils.getInstance().get(KEY_IS_TRACE_STARTED, false)
                 && SPUtils.getInstance().get(KEY_IS_GATHER_STARTED, false)) {
@@ -321,12 +326,15 @@ class TraceUtils(private val context: Context,
 
     /**
      * 查询其它设备
+     *
+     * @param entityNames   指定的entity名字
+     * @param activeTime    指定时间内活跃的entity。默认30秒
      */
-    fun queryEntityList(entityNames: List<String>? = null, listener: OnEntityListener) {
+    fun queryEntityList(entityNames: List<String>? = null, activeTime: Int = 30, listener: OnEntityListener) {
         // 过滤条件
         val filterCondition = FilterCondition()
         filterCondition.entityNames = entityNames
-        filterCondition.activeTime = (System.currentTimeMillis() / 1000 - 30)// 只查询30秒之内活跃的
+        filterCondition.activeTime = (System.currentTimeMillis() / 1000 - activeTime)// 只查询30秒之内活跃的
         // 返回结果坐标类型
         val coordTypeOutput = CoordType.bd09ll
         // 分页索引
@@ -360,8 +368,7 @@ class TraceUtils(private val context: Context,
         mTraceClient.queryFenceList(request, object : OnFenceListenerAdapter() {
             override fun onFenceListCallback(response: FenceListResponse) {
                 if (StatusCodes.SUCCESS == response.getStatus() && response.size != 0 && response.fenceType == FenceType.local) {
-                    mFenceInfoList.forEach {
-                        val circleFenceInfo = it
+                    mFenceInfoList.forEach { circleFenceInfo ->
                         val filter = response.fenceInfos.filter { it.circleFence.fenceName == circleFenceInfo.name }
                         if (filter.isNotEmpty()) {
                             circleFenceInfo.id = filter[0].circleFence.fenceId// 赋值围栏id

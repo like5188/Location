@@ -200,7 +200,7 @@ class SharedLocationUtils(val baiduMapView: MapView,
     private fun queryMarkers() {
         val entityNames = getEntityNames()
         if (entityNames.isNotEmpty()) {
-            mTraceUtils?.queryEntityList(entityNames, object : OnEntityListener() {
+            mTraceUtils?.queryEntityList(entityNames, listener = object : OnEntityListener() {
                 override fun onEntityListCallback(p0: EntityListResponse?) {
                     Log.d(TAG, "onEntityListCallback ${p0?.entities}")
                     if (p0 == null || p0.entities == null || p0.entities.isEmpty()) {
