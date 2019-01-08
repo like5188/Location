@@ -38,13 +38,13 @@ import java.io.Serializable
  * @param defaultIconResId      marker的默认icon资源id
  * @param period                查询好友数据的周期，毫秒，默认5000
  */
-class SharedLocationUtils(val baiduMapView: MapView,
-                          val serviceId: Long,
-                          val myEntityName: String,
-                          val myIconResId: Int = -1,
-                          val myIconUrl: String = "",
-                          val defaultIconResId: Int = R.drawable.icon_marker_default,// 默认marker图标
-                          val period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
+class SharedLocationUtils(private val baiduMapView: MapView,
+                          private val serviceId: Long,
+                          private val myEntityName: String,
+                          private val myIconResId: Int = -1,
+                          private val myIconUrl: String = "",
+                          private val defaultIconResId: Int = R.drawable.icon_marker_default,// 默认marker图标
+                          private val period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
     companion object {
         private val TAG = SharedLocationUtils::class.java.simpleName
         const val KEY_MARKER_EXTRAINFO = "key_marker_extrainfo"
