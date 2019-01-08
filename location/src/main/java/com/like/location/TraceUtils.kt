@@ -95,15 +95,15 @@ class TraceUtils(
     private val mTraceListener: OnTraceListener = object : OnTraceListener {
         /**
          * 绑定服务回调接口
-         * @param p0    状态码
-         * @param p1    消息
+         * @param status  状态码
+         * @param message 消息
          *                <p>
          *                <pre>0：成功 </pre>
          *                <pre>1：失败</pre>
          */
-        override fun onBindServiceCallback(p0: Int, p1: String?) {}
+        override fun onBindServiceCallback(status: Int, message: String?) {}
 
-        override fun onInitBOSCallback(p0: Int, p1: String?) {}
+        override fun onInitBOSCallback(status: Int, message: String?) {}
 
         /**
          * 开启服务回调接口
