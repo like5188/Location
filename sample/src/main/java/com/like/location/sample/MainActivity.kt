@@ -1,6 +1,7 @@
 package com.like.location.sample
 
 import android.Manifest
+import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -11,12 +12,13 @@ import com.like.location.NavigationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    private val mBinding: ActivityMainBinding by lazy { DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main) }
+    private val mBinding: ActivityMainBinding by lazy {
+        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-//        SDKInitializer.initialize(applicationContext)
         checkPermissionsAndRun(
                 "hahaha",
                 1,
@@ -43,6 +45,10 @@ class MainActivity : AppCompatActivity() {
 
     fun navigation(view: View) {
         NavigationUtils.navigation(this, 29.0, 106.0)
+    }
+
+    fun shareLocation(view: View) {
+        startActivity(Intent(this, ShareLocationActivity::class.java))
     }
 
 }

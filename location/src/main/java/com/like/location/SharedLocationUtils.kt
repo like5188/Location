@@ -65,7 +65,6 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     private var mCurrentLat = 0.0// 经度
     private var mCurrentLng = 0.0// 纬度
     private var mCurrentAccuracy = 0f// 精确度
-    private var locData: MyLocationData? = null
     private var isFirstLoc = true // 是否首次定位
     private val mLocationUtils: LocationUtils by lazy {
         LocationUtils.getInstance(context).addListener(
@@ -80,7 +79,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
                         mCurrentAccuracy = location.radius
 
                         // 显示自己的位置，包括方向只是图标，精度圈
-                        locData = MyLocationData.Builder()
+                        val locData = MyLocationData.Builder()
                                 .accuracy(mCurrentAccuracy)
                                 .direction(mCurrentDirection.toFloat())// 此处设置开发者获取到的方向信息，顺时针0-360
                                 .latitude(mCurrentLat)
@@ -365,7 +364,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
 //        val x = sensorEvent.values[SensorManager.DATA_X].toDouble()
 //        if (Math.abs(x - lastX) > 1.0) {
 //            mCurrentDirection = x.toInt()
-//            locData = MyLocationData.Builder()
+//            val locData = MyLocationData.Builder()
 //                    .accuracy(mCurrentAccuracy)
 //                    // 此处设置开发者获取到的方向信息，顺时针0-360
 //                    .direction(mCurrentDirection.toFloat()).latitude(mCurrentLat)
