@@ -27,9 +27,10 @@ android {
         enabled true
     }
 
+    // 配置放入libs文件夹中的.so文件
     sourceSets {
         main {
-            jniLibs.srcDirs = ['libs']
+            jniLibs.srcDirs = ['libs']  //将so文件路径（jniLibs）指向＂libs＂路径，这样就可以把so文件打包到APK的lib文件夹中
         }
     }
 
