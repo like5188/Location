@@ -6,7 +6,6 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import com.baidu.mapapi.SDKInitializer
 import com.like.location.LocationUtils
 import com.like.location.NavigationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
