@@ -1,20 +1,11 @@
 package com.like.location
 
 import android.content.Context
-import android.hardware.SensorManager
 import android.util.Log
-import android.view.View
-import com.baidu.location.BDLocation
-import com.baidu.mapapi.map.BitmapDescriptorFactory
 import com.baidu.mapapi.map.MapView
-import com.baidu.mapapi.map.MyLocationConfiguration
-import com.baidu.mapapi.map.MyLocationData
-import com.baidu.mapapi.model.LatLng
 import com.baidu.trace.api.entity.EntityListResponse
 import com.baidu.trace.api.entity.OnEntityListener
-import com.like.location.entity.CircleFenceInfo
 import com.like.location.entity.MarkerInfo
-import com.like.location.listener.MyLocationListener
 import com.like.location.util.LocationConstants
 import com.like.location.util.RxJavaUtils
 import com.like.location.util.SingletonHolder
@@ -37,45 +28,12 @@ class SharedLocationUtils(private val context: Context) {
         private val TAG = SharedLocationUtils::class.java.simpleName
     }
 
-    private var serviceId: Long = 0L
     private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
     private val mMarkerManager: MarkerManager by lazy { MarkerManager.getInstance() }
+    private val mLocationUtils: LocationUtils by lazy { LocationUtils.getInstance(context) }
     private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils.getInstance(context) }
+    private var serviceId: Long = 0L
     private var disposable: Disposable? = null
-    private var circleFenceInfoList: List<CircleFenceInfo>? = null
-    // 传感器相关
-    private val mSensorManager: SensorManager by lazy { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
-    private var lastX: Double = 0.0
-    // 定位自己
-    private var mCurrentDirection = 0
-    private var mCurrentLat = 0.0// 经度
-    private var mCurrentLng = 0.0// 纬度
-    private var mCurrentAccuracy = 0f// 精确度
-    private var isFirstLoc = true // 是否首次定位
-    private val mLocationUtils: LocationUtils by lazy {
-        LocationUtils.getInstance(context).addListener(
-                object : MyLocationListener {
-                    override fun onReceiveLocation(location: BDLocation?) {
-                        // map view 销毁后不在处理新接收的位置
-                        if (location == null) {
-                            return
-                        }
-                        mCurrentLat = location.latitude
-                        mCurrentLng = location.longitude
-                        mCurrentAccuracy = location.radius
-
-                        // 显示自己的位置，包括方向只是图标，精度圈
-                        val locData = MyLocationData.Builder()
-                                .accuracy(mCurrentAccuracy)
-                                .direction(mCurrentDirection.toFloat())// 此处设置开发者获取到的方向信息，顺时针0-360
-                                .latitude(mCurrentLat)
-                                .longitude(mCurrentLng)
-                                .build()
-                        mBaiduMapManager.setMyLocationData(locData)
-                    }
-                }
-        )
-    }
 
     /**
      * @param baiduMapView          百度的MapView
@@ -87,6 +45,7 @@ class SharedLocationUtils(private val context: Context) {
         mBaiduMapManager.init(baiduMapView)
         mMyTraceUtils.init(baiduMapView.map, serviceId, myEntityName)
         mMyTraceUtils.startTrace()
+        mLocationUtils.setMapView(baiduMapView)
         mLocationUtils.start()
     }
 
@@ -138,78 +97,18 @@ class SharedLocationUtils(private val context: Context) {
         }
     }
 
-    /**
-     * 定位到自己的位置
-     */
-    fun locationMyPosition() {
-        mBaiduMapManager.setMapCenter(LatLng(mCurrentLat, mCurrentLng))
-    }
-
-    /**
-     * 创建围栏，只创建一次。并设置第一个围栏为地图中心。
-     */
-    fun createFences(circleFenceInfoList: List<CircleFenceInfo>) {
-        if (circleFenceInfoList.isEmpty()) {
-            return
-        }
-        if (isFirstLoc) {
-            isFirstLoc = false
-            this.circleFenceInfoList = circleFenceInfoList
-            mMyTraceUtils.createLocalFences(circleFenceInfoList)
-            // 设置第一个围栏为地图中心
-            mBaiduMapManager.setMapCenter(circleFenceInfoList[0].latLng)
-        }
-    }
-
-    // 设置指定index的围栏为地图中心
-    fun setMapCenter(index: Int) {
-        circleFenceInfoList?.get(index)?.let {
-            mBaiduMapManager.setMapCenter(it.latLng)
-        }
-    }
-
-    fun getMyLat() = mCurrentLat
-
-    fun getMyLng() = mCurrentLng
-
-    /**
-     * 设置自己的位置的图标视图
-     */
-    fun setMyLocationIconView(view: View) {
-        mBaiduMapManager.setMyLocationIconView(view)
-    }
-
     fun onPause() {
         mBaiduMapManager.pause()
     }
 
     fun onResume() {
         mBaiduMapManager.resume()
-        //为系统的方向传感器注册监听器
-//        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_UI)
+        mLocationUtils.resume()
     }
 
     fun onStop() {
-        //取消注册传感器监听
-//        mSensorManager.unregisterListener(this)
+        mLocationUtils.stop()
     }
-
-    // 传感器相关，需要类实现SensorEventListener接口
-//    override fun onSensorChanged(sensorEvent: SensorEvent) {
-//        val x = sensorEvent.values[SensorManager.DATA_X].toDouble()
-//        if (Math.abs(x - lastX) > 1.0) {
-//            mCurrentDirection = x.toInt()
-//            val locData = MyLocationData.Builder()
-//                    .accuracy(mCurrentAccuracy)
-//                    // 此处设置开发者获取到的方向信息，顺时针0-360
-//                    .direction(mCurrentDirection.toFloat()).latitude(mCurrentLat)
-//                    .longitude(mCurrentLng).build()
-//            baiduMapView.map.setMyLocationData(locData)
-//        }
-//        lastX = x
-//    }
-//
-//    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     fun onDestroy() {
         disposable?.let {

@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.model.LatLng
+import com.like.location.BaiduMapManager
+import com.like.location.MyTraceUtils
 import com.like.location.SharedLocationUtils
 import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
@@ -31,7 +33,7 @@ class ShareLocationActivity : AppCompatActivity() {
         SDKInitializer.initialize(this.applicationContext)
         mBinding
         mSharedLocationUtils.init(mBinding.mapView, 200897, "like")
-        mSharedLocationUtils.setMyLocationIconView(
+        BaiduMapManager.getInstance().setMyLocationIconView(
                 wrapMarkerView(BitmapFactory.decodeResource(resources, R.drawable.icon_marker_default))
         )
     }
@@ -89,11 +91,15 @@ class ShareLocationActivity : AppCompatActivity() {
                     this.radius = 100
                 }
         )
-        mSharedLocationUtils.createFences(circleFenceInfoList)
+        MyTraceUtils.getInstance(this).createLocalFences(circleFenceInfoList)
+        // 设置第一个围栏为地图中心
+        BaiduMapManager.getInstance().setMapCenter(circleFenceInfoList[0].latLng)
     }
 
     fun locationFences(view: View) {
-        mSharedLocationUtils.setMapCenter(0)
+        MyTraceUtils.getInstance(this).getFenceInfo(0)?.apply {
+            BaiduMapManager.getInstance().setMapCenter(latLng)
+        }
     }
 
     override fun onPause() {

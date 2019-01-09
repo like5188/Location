@@ -47,6 +47,8 @@ class BaiduMapManager private constructor() {
         }
     }
 
+    fun isInitialized() = ::baiduMapView.isInitialized
+
     /**
      * 设置自己的位置的图标视图
      */
@@ -70,7 +72,7 @@ class BaiduMapManager private constructor() {
     }
 
     /**
-     * 设置地图中心
+     * 设置指定经纬度为地图中心
      */
     fun setMapCenter(latLng: LatLng?) {
         latLng?.let {

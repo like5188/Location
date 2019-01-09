@@ -488,6 +488,13 @@ class MyTraceUtils private constructor(private val context: Context) {
         })
     }
 
+    fun getFenceInfo(index: Int): CircleFenceInfo? =
+            if (mFenceInfoList.size > index) {
+                mFenceInfoList[index]
+            } else {
+                null
+            }
+
     /**
      * 创建本地围栏
      */

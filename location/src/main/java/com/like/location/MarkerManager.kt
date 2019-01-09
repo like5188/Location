@@ -11,7 +11,7 @@ import kotlin.jvm.functions.FunctionN
 /**
  * Marker管理工具类
  */
-class MarkerManager private constructor(){
+class MarkerManager private constructor() {
     companion object : SingletonHolder<MarkerManager>(object : FunctionN<MarkerManager> {
         override val arity: Int = 0 // number of arguments that must be passed to constructor
 
@@ -48,8 +48,6 @@ class MarkerManager private constructor(){
     }
 
     fun getEntityNames() = markerInfos.map { it.entityName }
-
-    fun getMarkerInfos() = markerInfos
 
     fun getMarkerInfoByMarker(marker: Marker): MarkerInfo? {
         val filter = markerInfos.filter { it.marker == marker }

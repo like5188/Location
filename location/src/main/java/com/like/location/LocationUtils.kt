@@ -1,19 +1,26 @@
 package com.like.location
 
 import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.Log
 import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClient
 import com.baidu.location.LocationClientOption
+import com.baidu.mapapi.map.MapView
+import com.baidu.mapapi.map.MyLocationData
 import com.like.location.listener.MyLocationListener
 import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
 /**
- * 定位工具类
+ * 定位工具类。
+ * 获取自己的位置，或者通过[setMapView]方法设置地图显示自己的位置。
  */
-class LocationUtils private constructor(context: Context) {
+class LocationUtils private constructor(context: Context) : SensorEventListener {
     companion object : SingletonHolder<LocationUtils>(object : FunctionN<LocationUtils> {
         override val arity: Int = 1 // number of arguments that must be passed to constructor
 
@@ -24,6 +31,13 @@ class LocationUtils private constructor(context: Context) {
 
     // 定位服务的客户端。宿主程序在客户端声明此类，并调用，目前只支持在主线程中启动
     private val mLocationClient: LocationClient by lazy { LocationClient(context.applicationContext) } // 声明LocationClient类
+    // 传感器相关
+    private val mSensorManager: SensorManager by lazy { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+    private var lastX: Double = 0.0
+    // 定位自己
+    private var mCurrentDirection = 0f
+    private var mLocation: BDLocation? = null
+    private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
 
     init {
         val locationOption = LocationClientOption()
@@ -47,14 +61,54 @@ class LocationUtils private constructor(context: Context) {
         mLocationClient.locOption = locationOption
     }
 
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    }
+
+    override fun onSensorChanged(sensorEvent: SensorEvent?) {
+        sensorEvent ?: return
+        val x = sensorEvent.values[SensorManager.DATA_X].toDouble()
+        if (Math.abs(x - lastX) > 1.0) {
+            mCurrentDirection = x.toFloat()
+            updateMyLocation()
+        }
+        lastX = x
+    }
+
+    /**
+     * 设置百度MapView。设置后，就会显示到地图上了
+     */
+    fun setMapView(mapView: MapView) {
+        mBaiduMapManager.init(mapView)
+    }
+
     fun addListener(listener: MyLocationListener? = null): LocationUtils {
         mLocationClient.registerLocationListener(object : BDAbstractLocationListener() {
             override fun onReceiveLocation(location: BDLocation?) {
                 printLocation(location)
                 listener?.onReceiveLocation(location)
+                mLocation = location
+                if (mBaiduMapManager.isInitialized()) {
+                    updateMyLocation()
+                }
             }
         })
         return this
+    }
+
+    /**
+     * 更新自己的位置
+     */
+    fun updateMyLocation() {
+        mLocation?.apply {
+            // 显示自己的位置，包括方向只是图标，精度圈
+            val locData = MyLocationData.Builder()
+                    .accuracy(radius)
+                    .direction(mCurrentDirection)// 此处设置开发者获取到的方向信息，顺时针0-360
+                    .latitude(latitude)
+                    .longitude(longitude)
+                    .build()
+            mBaiduMapManager.setMyLocationData(locData)
+        }
     }
 
     /**
@@ -73,12 +127,21 @@ class LocationUtils private constructor(context: Context) {
         mLocationClient.start()
     }
 
+    fun resume() {
+        // 为系统的方向传感器注册监听器
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_UI)
+    }
+
     /**
      * 关闭定位SDK
      */
     fun stop() {
         mLocationClient.stop()
+        // 取消注册传感器监听
+        mSensorManager.unregisterListener(this)
     }
+
+    fun getLocation() = mLocation
 
     private fun printLocation(location: BDLocation?) {
         if (location == null) {
