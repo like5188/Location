@@ -20,36 +20,31 @@ import com.like.location.entity.CircleFenceInfo
 import com.like.location.listener.OnFenceListenerAdapter
 import com.like.location.util.LocationConstants
 import com.like.location.util.SPUtils
+import com.like.location.util.SingletonHolder
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.jvm.functions.FunctionN
 
 /**
  * 本设备（自己）的鹰眼轨迹管理工具类。
  * 包括：自己的轨迹上传、围栏的创建、以及自己进出围栏的告警、。
  * 注意：地图只支持Android v4.0以上系统
- *
- * @param context
- * @param baiduMap
- * @param serviceId         轨迹服务ID
- * @param myEntityName      设备标识
- * @param gatherInterval    定位周期(单位:秒)
- * 多久定位一次，在定位周期大于15s时，SDK会将定位周期设置为5的倍数，默认为5秒
- * @param packInterval      打包回传周期(单位:秒)
- * 鹰眼为节省电量和流量，并不是定位一次就回传一次数据，而是隔段时间将一批定位数据打包压缩回传。
- * 回传周期最大不要超过定位周期的10倍，回传周期不能小于定位周期，否则回传不生效；回传周期建议设置为定位周期的整数倍。​默认为10秒。
  */
-class MyTraceUtils(
-        private val context: Context,
-        private val baiduMap: BaiduMap,
-        private val serviceId: Long,
-        private val myEntityName: String,
-        private val gatherInterval: Int = LocationConstants.DEFAULT_GATHER_INTERVAL,
-        private val packInterval: Int = LocationConstants.DEFAULT_PACK_INTERVAL
-) {
-    companion object {
+class MyTraceUtils private constructor(private val context: Context) {
+    companion object : SingletonHolder<MyTraceUtils>(object : FunctionN<MyTraceUtils> {
+        override val arity: Int = 1 // number of arguments that must be passed to constructor
+
+        override fun invoke(vararg args: Any?): MyTraceUtils {
+            return MyTraceUtils(args[0] as Context)
+        }
+    }) {
         private val TAG = MyTraceUtils::class.java.simpleName
         const val KEY_IS_TRACE_STARTED = "is_trace_started"
         const val KEY_IS_GATHER_STARTED = "is_gather_started"
     }
+
+    private lateinit var baiduMap: BaiduMap
+    private var serviceId: Long = 0
+    private var myEntityName: String = ""
 
     private val mSequenceGenerator = AtomicInteger()
     private val mFenceInfoList = mutableListOf<CircleFenceInfo>()
@@ -201,14 +196,23 @@ class MyTraceUtils(
         }
     }
 
-    init {
+    /**
+     * @param baiduMap
+     * @param serviceId         轨迹服务ID
+     * @param myEntityName      设备标识
+     */
+    fun init(baiduMap: BaiduMap, serviceId: Long, myEntityName: String) {
+        this.baiduMap = baiduMap
+        this.serviceId = serviceId
+        this.myEntityName = myEntityName
+
         // 清除缓存
         SPUtils.getInstance().init(context)
         SPUtils.getInstance().remove(KEY_IS_TRACE_STARTED)
         SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
 
         // 设置定位和打包周期
-        mTraceClient.setInterval(gatherInterval, packInterval)
+        mTraceClient.setInterval(LocationConstants.DEFAULT_GATHER_INTERVAL, LocationConstants.DEFAULT_PACK_INTERVAL)
         mTraceClient.setOnTraceListener(mTraceListener)
 
         // 查询轨迹接口提供了HTTP和HTTPS两种协议。使用HTTPS时，可能会降低请求效率。
@@ -277,6 +281,12 @@ class MyTraceUtils(
 
     /**
      * 设置轨迹采集和打包上传的间隔。可随时改变。
+     *
+     * @param gatherInterval    定位周期(单位:秒)
+     * 多久定位一次，在定位周期大于15s时，SDK会将定位周期设置为5的倍数，默认为5秒
+     * @param packInterval      打包回传周期(单位:秒)
+     * 鹰眼为节省电量和流量，并不是定位一次就回传一次数据，而是隔段时间将一批定位数据打包压缩回传。
+     * 回传周期最大不要超过定位周期的10倍，回传周期不能小于定位周期，否则回传不生效；回传周期建议设置为定位周期的整数倍。​默认为10秒。
      */
     fun setInterval(gatherInterval: Int, packInterval: Int) {
         mTraceClient.setInterval(gatherInterval, packInterval)

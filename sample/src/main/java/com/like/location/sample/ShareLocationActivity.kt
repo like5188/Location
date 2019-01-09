@@ -21,7 +21,7 @@ class ShareLocationActivity : AppCompatActivity() {
         DataBindingUtil.setContentView<ActivityShareLocationBinding>(this, R.layout.activity_share_location)
     }
     private val mSharedLocationUtils: SharedLocationUtils by lazy {
-        SharedLocationUtils(mBinding.mapView, 200897, "like")
+        SharedLocationUtils.getInstance(this)
     }
     private val mGlideUtils: GlideUtils by lazy { GlideUtils(this) }
 
@@ -30,6 +30,7 @@ class ShareLocationActivity : AppCompatActivity() {
         // 在使用地图SDK各组件之前初始化context信息，传入ApplicationContext
         SDKInitializer.initialize(this.applicationContext)
         mBinding
+        mSharedLocationUtils.init(mBinding.mapView, 200897, "like")
         mSharedLocationUtils.setMyLocationIconView(
                 wrapMarkerView(BitmapFactory.decodeResource(resources, R.drawable.icon_marker_default))
         )

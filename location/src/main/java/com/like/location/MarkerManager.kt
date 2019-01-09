@@ -11,12 +11,12 @@ import kotlin.jvm.functions.FunctionN
 /**
  * Marker管理工具类
  */
-class MarkerUtils {
-    companion object : SingletonHolder<MarkerUtils>(object : FunctionN<MarkerUtils> {
+class MarkerManager private constructor(){
+    companion object : SingletonHolder<MarkerManager>(object : FunctionN<MarkerManager> {
         override val arity: Int = 0 // number of arguments that must be passed to constructor
 
-        override fun invoke(vararg args: Any?): MarkerUtils {
-            return MarkerUtils()
+        override fun invoke(vararg args: Any?): MarkerManager {
+            return MarkerManager()
         }
     })
 

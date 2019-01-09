@@ -13,7 +13,7 @@ import kotlin.jvm.functions.FunctionN
 /**
  * 定位工具类
  */
-class LocationUtils(context: Context) {
+class LocationUtils private constructor(context: Context) {
     companion object : SingletonHolder<LocationUtils>(object : FunctionN<LocationUtils> {
         override val arity: Int = 1 // number of arguments that must be passed to constructor
 
