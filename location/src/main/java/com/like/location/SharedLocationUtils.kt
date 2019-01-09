@@ -223,17 +223,17 @@ class SharedLocationUtils(private val baiduMapView: MapView,
                             val marker = getMarkerByEntityName(it.entityName)
                             if (marker != null) {// 已经存在了
                                 Log.d(TAG, "entity（${it.entityName}）已经存在了，改变位置")
-                                getMarkerInfoFromMarker(marker)?.let {
-                                    it.lat = lat
-                                    it.lng = lng
+                                getMarkerInfoFromMarker(marker)?.let { markerInfo ->
+                                    markerInfo.lat = lat
+                                    markerInfo.lng = lng
                                 }
                                 changeMarkerPosition(marker, lat, lng)
                             } else {
                                 Log.d(TAG, "entity（${it.entityName}）不存在，创建")
-                                getMarkerInfoByEntityName(it.entityName)?.let {
-                                    it.lat = lat
-                                    it.lng = lng
-                                    addMarker(baiduMapView.map, it, lat, lng)
+                                getMarkerInfoByEntityName(it.entityName)?.let { markerInfo ->
+                                    markerInfo.lat = lat
+                                    markerInfo.lng = lng
+                                    addMarker(baiduMapView.map, markerInfo, lat, lng)
                                 }
                             }
                         }
