@@ -140,6 +140,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
         baiduMapView.showScaleControl(false)// 隐藏地图上的比例尺
         baiduMapView.showZoomControls(false)// 隐藏地图上的缩放控件
 
+        // 设置我的定位图标样式
         baiduMapView.map.setMyLocationConfiguration(MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, false, myBitmap, 0x00ffffff, 0x00ffffff))
         // 开启定位图层
         baiduMapView.map.isMyLocationEnabled = true
