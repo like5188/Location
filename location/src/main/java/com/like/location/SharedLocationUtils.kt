@@ -1,11 +1,9 @@
 package com.like.location
 
 import android.content.Context
-import android.databinding.DataBindingUtil
-import android.graphics.Bitmap
 import android.hardware.SensorManager
+import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
 import android.widget.ZoomControls
@@ -15,15 +13,12 @@ import com.baidu.mapapi.model.LatLng
 import com.baidu.trace.api.entity.EntityListResponse
 import com.baidu.trace.api.entity.OnEntityListener
 import com.like.livedatabus.LiveDataBus
-import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
 import com.like.location.listener.MyLocationListener
-import com.like.location.util.GlideUtils
 import com.like.location.util.LocationConstants
 import com.like.location.util.RxJavaUtils
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import org.jetbrains.anko.bundleOf
 import java.io.Serializable
 
 /**
@@ -33,27 +28,18 @@ import java.io.Serializable
  * @param baiduMapView          百度的MapView
  * @param serviceId             轨迹服务id
  * @param myEntityName          自己的entityName，一般为userId
- * @param myIconResId           自己的图标
- * @param myIconUrl             自己的图标
- * @param defaultIconResId      marker的默认icon资源id
  * @param period                查询好友数据的周期，毫秒，默认5000
  */
 class SharedLocationUtils(private val baiduMapView: MapView,
                           private val serviceId: Long,
                           private val myEntityName: String,
-                          private val myIconResId: Int = -1,
-                          private val myIconUrl: String = "",
-                          private val defaultIconResId: Int = R.drawable.icon_marker_default,// 默认marker图标
                           private val period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
     companion object {
         private val TAG = SharedLocationUtils::class.java.simpleName
-        const val KEY_MARKER_EXTRAINFO = "key_marker_extrainfo"
     }
 
     private val context: Context by lazy { baiduMapView.context }
     private val markerInfos = mutableListOf<MarkerInfo>()// 需要显示在地图上的marker，不包括自己
-    private val mMarkers = mutableListOf<Marker>()
-    private val mGlideUtils: GlideUtils by lazy { GlideUtils(context) }
     private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
     private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils(context, baiduMapView.map, serviceId, myEntityName) }
     private var disposable: Disposable? = null
@@ -93,46 +79,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     }
 
     init {
-        mMyTraceUtils.startTrace()
-
-        fun startLocationMy(myBitmapDescriptor: BitmapDescriptor) {
-            initBaiduMap(baiduMapView, myBitmapDescriptor)
-            mLocationUtils.start()
-        }
-
-        when {
-            myIconResId != -1 -> startLocationMy(BitmapDescriptorFactory.fromResource(myIconResId))
-            myIconUrl.isNotEmpty() -> mGlideUtils.downloadImage(myIconUrl, {
-                startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker(it)))
-            }, {
-                startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker()))
-            })
-            else -> startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker()))
-        }
-    }
-
-    fun setMarkerList(markerInfos: List<MarkerInfo>) {
-        if (markerInfos.isEmpty()) return
-        this.markerInfos.addAll(markerInfos)
-        disposable = RxJavaUtils.interval(period, Schedulers.io()) {
-            queryMarkers()
-        }
-    }
-
-    /**
-     * 对marker图标进行了一层外圈包装
-     */
-    private fun wrapMarker(bitmap: Bitmap? = null): View {
-        val binding = DataBindingUtil.inflate<ViewMapMarkerBinding>(LayoutInflater.from(context), R.layout.view_map_marker, null, false)
-        if (bitmap != null) {
-            binding.iv.setImageBitmap(bitmap)
-        } else {
-            binding.iv.setImageResource(defaultIconResId)
-        }
-        return binding.root
-    }
-
-    private fun initBaiduMap(baiduMapView: MapView, myBitmap: BitmapDescriptor) {
+        // 初始化百度地图
         // 隐藏百度地图的logo
         val child = baiduMapView.getChildAt(1)
         if (child != null && (child is ImageView || child is ZoomControls)) {
@@ -140,16 +87,87 @@ class SharedLocationUtils(private val baiduMapView: MapView,
         }
         baiduMapView.showScaleControl(false)// 隐藏地图上的比例尺
         baiduMapView.showZoomControls(false)// 隐藏地图上的缩放控件
-
-        // 设置我的定位图标样式
-        baiduMapView.map.setMyLocationConfiguration(MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, false, myBitmap, 0x00ffffff, 0x00ffffff))
         // 开启定位图层
         baiduMapView.map.isMyLocationEnabled = true
         // Marker点击
         baiduMapView.map.setOnMarkerClickListener {
-            LiveDataBus.post(LocationConstants.TAG_CLICK_MARKER, getMarkerInfoFromMarker(it))
+            LiveDataBus.post(LocationConstants.TAG_CLICK_MARKER, getMarkerInfoByMarker(it))
             true
         }
+
+        mMyTraceUtils.startTrace()
+        mLocationUtils.start()
+    }
+
+    fun setMarkerList(markerInfos: List<MarkerInfo>) {
+        if (markerInfos.isEmpty()) return
+        this.markerInfos.addAll(markerInfos)
+        disposable = RxJavaUtils.interval(period, Schedulers.io()) {
+            // 查询指定entityName的Entity，并添加到地图上
+            val entityNames = markerInfos.map { it.entityName }
+            if (entityNames.isNotEmpty()) {
+                mTraceUtils.queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
+                    override fun onEntityListCallback(entityListResponse: EntityListResponse?) {
+                        Log.d(TAG, "onEntityListCallback ${entityListResponse?.entities}")
+                        if (entityListResponse == null || entityListResponse.entities == null || entityListResponse.entities.isEmpty()) {
+                            Log.d(TAG, "没有查到entity，清除所有marker")
+                            clearMarkerInfo()
+                        } else {
+                            val entityNamesResult = mutableListOf<String>()
+                            entityListResponse.entities.mapTo(entityNamesResult) {
+                                it.entityName
+                            }
+                            // 下线的
+                            entityNames.subtract(entityNamesResult).forEach {
+                                Log.d(TAG, "entity（$it）离线，删除")
+                                removeMarkerInfo(it)
+                            }
+                            // 在线的
+                            entityListResponse.entities.forEach {
+                                val lat = it.latestLocation.location.latitude
+                                val lng = it.latestLocation.location.longitude
+
+                                val markerInfo = getMarkerInfoByEntityName(it.entityName)
+                                        ?: return@forEach
+                                markerInfo.lat = lat
+                                markerInfo.lng = lng
+
+                                val marker = markerInfo.marker
+                                if (marker != null) {// 已经存在了
+                                    Log.d(TAG, "entity（${it.entityName}）已经存在了，改变位置")
+                                    marker.position = LatLng(lat, lng)
+                                } else {
+                                    Log.d(TAG, "entity（${it.entityName}）不存在，创建")
+                                    val overlayOptions = MarkerOptions()
+                                            .position(LatLng(markerInfo.lat, markerInfo.lng))
+                                            .zIndex(9)
+                                            .draggable(false)
+                                    markerInfo.getBitmapDescriptor()?.let { bitmapDescriptor ->
+                                        overlayOptions.icon(bitmapDescriptor)
+                                    }
+                                    markerInfo.marker = baiduMapView.map.addOverlay(overlayOptions) as Marker
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    /**
+     * 设置我的定位图标的视图
+     */
+    fun setMyLocationIconView(view: View) {
+        baiduMapView.map.setMyLocationConfiguration(
+                MyLocationConfiguration(
+                        MyLocationConfiguration.LocationMode.NORMAL,
+                        false,
+                        BitmapDescriptorFactory.fromView(view),
+                        0x00ffffff,
+                        0x00ffffff
+                )
+        )
     }
 
     /**
@@ -160,7 +178,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     }
 
     /**
-     * 创建围栏，只创建一次
+     * 创建围栏，只创建一次。并设置第一个围栏为地图中心。
      */
     fun createFences(circleFenceInfoList: List<CircleFenceInfo>) {
         if (circleFenceInfoList.isEmpty()) {
@@ -190,159 +208,39 @@ class SharedLocationUtils(private val baiduMapView: MapView,
         }
     }
 
-    fun getLat() = mCurrentLat
+    fun getMyLat() = mCurrentLat
 
-    fun getLng() = mCurrentLng
+    fun getMyLng() = mCurrentLng
 
-    /**
-     * 查询指定entityName的Entity，并添加到地图上
-     */
-    private fun queryMarkers() {
-        val entityNames = getEntityNames()
-        if (entityNames.isNotEmpty()) {
-            mTraceUtils.queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
-                override fun onEntityListCallback(p0: EntityListResponse?) {
-                    Log.d(TAG, "onEntityListCallback ${p0?.entities}")
-                    if (p0 == null || p0.entities == null || p0.entities.isEmpty()) {
-                        Log.d(TAG, "没有查到entity，清除所有marker")
-                        clearMarker()
-                    } else {
-                        val entityNamesResult = mutableListOf<String>()
-                        p0.entities.mapTo(entityNamesResult) {
-                            it.entityName
-                        }
-                        // 下线的
-                        entityNames.subtract(entityNamesResult).forEach {
-                            Log.d(TAG, "entity（$it）离线，删除")
-                            val marker = getMarkerByEntityName(it)
-                            removeMarker(marker)
-                        }
-                        // 在线的
-                        p0.entities.forEach {
-                            val lat = it.latestLocation.location.latitude
-                            val lng = it.latestLocation.location.longitude
-
-                            val marker = getMarkerByEntityName(it.entityName)
-                            if (marker != null) {// 已经存在了
-                                Log.d(TAG, "entity（${it.entityName}）已经存在了，改变位置")
-                                getMarkerInfoFromMarker(marker)?.let { markerInfo ->
-                                    markerInfo.lat = lat
-                                    markerInfo.lng = lng
-                                }
-                                changeMarkerPosition(marker, lat, lng)
-                            } else {
-                                Log.d(TAG, "entity（${it.entityName}）不存在，创建")
-                                getMarkerInfoByEntityName(it.entityName)?.let { markerInfo ->
-                                    markerInfo.lat = lat
-                                    markerInfo.lng = lng
-                                    addMarker(baiduMapView.map, markerInfo, lat, lng)
-                                }
-                            }
-                        }
-                    }
-                }
-            })
-        }
-    }
-
-    private fun getMarkerByEntityName(entityName: String): Marker? {
-        val filter = mMarkers.filter {
-            (getMarkerInfoFromMarker(it)?.entityName ?: "") == entityName
-        }
+    private fun getMarkerInfoByMarker(marker: Marker): MarkerInfo? {
+        val filter = markerInfos.filter { it.marker == marker }
         return if (filter.isNotEmpty()) filter[0] else null
-    }
-
-    private fun getEntityNames(): List<String> {
-        val entityNames = mutableListOf<String>()
-        markerInfos.mapTo(entityNames) {
-            it.entityName
-        }
-        return entityNames
     }
 
     private fun getMarkerInfoByEntityName(entityName: String): MarkerInfo? {
         val filter = markerInfos.filter { it.entityName == entityName }
-        return if (filter.isNotEmpty()) {
-            filter[0]
-        } else {
-            null
-        }
+        return if (filter.isNotEmpty()) filter[0] else null
     }
 
-    private fun addMarker(baiduMap: BaiduMap, markerInfo: MarkerInfo, lat: Double, lng: Double) {
-        if (markerInfo.iconUrl.isEmpty()) {
-            addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker()), markerInfo)
-        } else {
-            mGlideUtils.downloadImage(markerInfo.iconUrl,
-                    { bitmap ->
-                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker(bitmap)), markerInfo)
-                    },
-                    {
-                        addIconMarker(baiduMap, lat, lng, BitmapDescriptorFactory.fromView(wrapMarker()), markerInfo)
-                    }
-            )
-        }
-    }
-
-    /**
-     * 添加指定icon的marker
-     */
-    private fun addIconMarker(baiduMap: BaiduMap, lat: Double, lng: Double, bitmapDescriptor: BitmapDescriptor, markerInfo: MarkerInfo) {
-        if (!mMarkers.any { getMarkerInfoFromMarker(it)?.entityName == markerInfo.entityName }) {
-            val overlayOptions = MarkerOptions().position(LatLng(lat, lng)).icon(bitmapDescriptor).zIndex(9).draggable(false)
-            mMarkers.add(addMarkerInfoToMarker(markerInfo, baiduMap.addOverlay(overlayOptions) as Marker))
-        }
-    }
-
-    private fun addMarkerInfoToMarker(markerInfo: MarkerInfo, marker: Marker): Marker {
-        marker.extraInfo = bundleOf(KEY_MARKER_EXTRAINFO to markerInfo)
-        return marker
-    }
-
-    private fun getMarkerInfoFromMarker(marker: Marker): MarkerInfo? {
-        val extraInfo = marker.extraInfo[KEY_MARKER_EXTRAINFO]
-        return if (extraInfo != null) {
-            extraInfo as MarkerInfo
-        } else {
-            null
-        }
-    }
-
-    /**
-     * 显示信息窗口
-     */
-    private fun showInfoWindow(baiduMap: BaiduMap, view: View, marker: Marker, listener: InfoWindow.OnInfoWindowClickListener) {
-        val infoWindow = InfoWindow(BitmapDescriptorFactory.fromView(view), marker.position, -47, listener)
-        baiduMap.showInfoWindow(infoWindow)
-    }
-
-    /**
-     * 改变marker位置
-     */
-    private fun changeMarkerPosition(marker: Marker, lat: Double, lng: Double) {
-        marker.position = LatLng(lat, lng)
-    }
-
-    /**
-     * 改变marker图标
-     */
-    private fun changeMarkerIcon(marker: Marker, bitmapDescriptor: BitmapDescriptor) {
-        marker.icon = bitmapDescriptor
-    }
-
-    private fun removeMarker(marker: Marker?) {
-        marker?.let {
-            it.remove()
-            mMarkers.remove(it)
-        }
-    }
-
-    private fun clearMarker() {
-        if (mMarkers.isNotEmpty()) {
-            mMarkers.forEach {
-                it.remove()
+    private fun removeMarkerInfo(entityName: String) {
+        val listIterator = markerInfos.listIterator()
+        run breaking@{
+            listIterator.forEach continuing@{ markerInfo ->
+                if (markerInfo.entityName == entityName) {
+                    markerInfo.marker?.remove()
+                    listIterator.remove()
+                    return@breaking
+                }
             }
-            mMarkers.clear()
+        }
+    }
+
+    private fun clearMarkerInfo() {
+        if (markerInfos.isNotEmpty()) {
+            markerInfos.forEach {
+                it.marker?.remove()
+            }
+            markerInfos.clear()
         }
     }
 
@@ -389,7 +287,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
 
         mMyTraceUtils.destroy()
 
-        mMarkers.clear()
+        clearMarkerInfo()
 
         baiduMapView.map.isMyLocationEnabled = false
         baiduMapView.map.clear()
@@ -400,14 +298,15 @@ class SharedLocationUtils(private val baiduMapView: MapView,
 
     /**
      * @param entityName
-     * @param iconUrl marker的图标
-     * @param userId userId
-     * @param userNickName 用户昵称
-     * @param phone 电话号码
+     * @param iconView      marker的图标视图
+     * @param extraInfo     额外的数据
      */
-    class MarkerInfo(val entityName: String, val iconUrl: String, val userId: String, val name: String, val userNickName: String, val phone: String) : Serializable {
+    class MarkerInfo(val entityName: String, val iconView: View, val extraInfo: Bundle) : Serializable {
+        var marker: Marker? = null
         var lat = 0.0// 经度
         var lng = 0.0// 纬度
+
+        fun getBitmapDescriptor(): BitmapDescriptor? = BitmapDescriptorFactory.fromView(iconView)
     }
 
 }

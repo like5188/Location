@@ -1,4 +1,4 @@
-package com.like.location.util
+package com.like.location.sample
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -151,10 +151,15 @@ class GlideUtils {
      * @param onSuccess 回调，UI线程
      */
     @SuppressLint("CheckResult")
-    fun downloadImages(urlList: List<String>, onSuccess: (String, Bitmap) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
+    fun downloadImages(urlList: List<String>, onSuccess: (Map<String, Bitmap>) -> Unit, onFailure: ((Throwable) -> Unit)? = null) {
         getDownloadImagesObservable(urlList).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .collect({
+                    mutableMapOf<String, Bitmap>()
+                }, { map, pair ->
+                    map[pair.first] = pair.second
+                })
                 .subscribe({
-                    onSuccess(it.first, it.second)
+                    onSuccess(it)
                 }, {
                     onFailure?.invoke(it)
                 })

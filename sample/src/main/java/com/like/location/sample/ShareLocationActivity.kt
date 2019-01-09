@@ -1,14 +1,18 @@
 package com.like.location.sample
 
 import android.databinding.DataBindingUtil
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.model.LatLng
 import com.like.location.SharedLocationUtils
+import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
-import com.like.location.sample.databinding.ActivityMainBinding
 import com.like.location.sample.databinding.ActivityShareLocationBinding
 
 class ShareLocationActivity : AppCompatActivity() {
@@ -18,43 +22,53 @@ class ShareLocationActivity : AppCompatActivity() {
     private val mSharedLocationUtils: SharedLocationUtils by lazy {
         SharedLocationUtils(mBinding.mapView, 200897, "like")
     }
+    private val mGlideUtils: GlideUtils by lazy { GlideUtils(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 在使用地图SDK各组件之前初始化context信息，传入ApplicationContext
         SDKInitializer.initialize(this.applicationContext)
         mBinding
+        mSharedLocationUtils.setMyLocationIconView(
+                wrapMarkerView(BitmapFactory.decodeResource(resources, R.drawable.icon_marker_default))
+        )
     }
 
     fun setMarkerList(view: View) {
-        // 为我的所有家人添加marker
-        val markerInfos = listOf(
-//                SharedLocationUtils.MarkerInfo(
-//                        "like",
-//                        "http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg",
-//                        "userId",
-//                        "name",
-//                        "userNickName",
-//                        "13300000000"
-//                ),
-                SharedLocationUtils.MarkerInfo(
-                        "like1",
+        mGlideUtils.downloadImages(
+                listOf(
                         "http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg",
-                        "userId1",
-                        "name1",
-                        "userNickName1",
-                        "13311111111"
+                        "http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg1"
                 ),
-                SharedLocationUtils.MarkerInfo(
-                        "like2",
-                        "http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg",
-                        "userId2",
-                        "name2",
-                        "userNickName2",
-                        "13322222222"
-                )
+                { map ->
+                    Log.d("ShareLocationActivity", "图标下载成功")
+                    // 为我的所有家人添加marker
+                    val markerInfos = listOf(
+                            SharedLocationUtils.MarkerInfo(
+                                    "like1",
+                                    wrapMarkerView(map["http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg"]),
+                                    Bundle().apply {
+                                        putString("userId", "userId1")
+                                        putString("name", "name1")
+                                        putString("userNickName", "userNickName1")
+                                        putString("phone", "13311111111")
+                                    }),
+                            SharedLocationUtils.MarkerInfo(
+                                    "like2",
+                                    wrapMarkerView(map["http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg"]),
+                                    Bundle().apply {
+                                        putString("userId", "userId2")
+                                        putString("name", "name2")
+                                        putString("userNickName", "userNickName2")
+                                        putString("phone", "13322222222")
+                                    })
+                    )
+                    mSharedLocationUtils.setMarkerList(markerInfos)
+                },
+                {
+                    Log.e("ShareLocationActivity", "图标下载失败：${it.message}")
+                }
         )
-        mSharedLocationUtils.setMarkerList(markerInfos)
     }
 
     fun createFences(view: View) {
@@ -100,4 +114,16 @@ class ShareLocationActivity : AppCompatActivity() {
         mSharedLocationUtils.onDestroy()
     }
 
+    /**
+     * 对marker图标进行了一层外圈包装
+     */
+    private fun wrapMarkerView(bitmap: Bitmap? = null): View {
+        val binding = DataBindingUtil.inflate<ViewMapMarkerBinding>(LayoutInflater.from(this), com.like.location.R.layout.view_map_marker, null, false)
+        if (bitmap != null) {
+            binding.iv.setImageBitmap(bitmap)
+        } else {
+            binding.iv.setImageResource(R.drawable.icon_marker_default)
+        }
+        return binding.root
+    }
 }
