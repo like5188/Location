@@ -27,13 +27,6 @@ android {
         enabled true
     }
 
-    // 配置放入libs文件夹中的.so文件
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['libs']  //将so文件路径（jniLibs）指向＂libs＂路径，这样就可以把so文件打包到APK的lib文件夹中
-        }
-    }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -65,7 +58,6 @@ dependencies {
 
     api files('libs/BaiduLBS_Android.jar')// 百度地图
     api files('libs/BaiduTraceSDK_v3_0_8.jar')
-    api files('libs/bos-android-sdk-1.0.3.jar')
 
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
 }
