@@ -54,7 +54,8 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     private val markerInfos = mutableListOf<MarkerInfo>()// 需要显示在地图上的marker，不包括自己
     private val mMarkers = mutableListOf<Marker>()
     private val mGlideUtils: GlideUtils by lazy { GlideUtils(context) }
-    private val mTraceUtils: TraceUtils by lazy { TraceUtils(context, baiduMapView.map, serviceId, myEntityName) }
+    private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
+    private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils(context, baiduMapView.map, serviceId, myEntityName) }
     private var disposable: Disposable? = null
     private var circleFenceInfoList: List<CircleFenceInfo>? = null
     // 传感器相关
@@ -92,7 +93,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     }
 
     init {
-        mTraceUtils.startTrace()
+        mMyTraceUtils.startTrace()
 
         fun startLocationMy(myBitmapDescriptor: BitmapDescriptor) {
             initBaiduMap(baiduMapView, myBitmapDescriptor)
@@ -168,7 +169,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
         if (isFirstLoc) {
             isFirstLoc = false
             this.circleFenceInfoList = circleFenceInfoList
-            mTraceUtils.createLocalFences(circleFenceInfoList)
+            mMyTraceUtils.createLocalFences(circleFenceInfoList)
             // 设置第一个围栏为地图中心
             setMapCenter(circleFenceInfoList[0].latLng)
         }
@@ -199,7 +200,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     private fun queryMarkers() {
         val entityNames = getEntityNames()
         if (entityNames.isNotEmpty()) {
-            mTraceUtils.queryEntityList(entityNames, listener = object : OnEntityListener() {
+            mTraceUtils.queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
                 override fun onEntityListCallback(p0: EntityListResponse?) {
                     Log.d(TAG, "onEntityListCallback ${p0?.entities}")
                     if (p0 == null || p0.entities == null || p0.entities.isEmpty()) {
@@ -386,7 +387,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
 
         mLocationUtils.stop()
 
-        mTraceUtils.destroy()
+        mMyTraceUtils.destroy()
 
         mMarkers.clear()
 
@@ -407,27 +408,6 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     class MarkerInfo(val entityName: String, val iconUrl: String, val userId: String, val name: String, val userNickName: String, val phone: String) : Serializable {
         var lat = 0.0// 经度
         var lng = 0.0// 纬度
-    }
-
-    /**
-     * 查询本地围栏历史告警信息
-     *
-     * @param startTime         开始时间戳，默认为当前时间以前24小时
-     * @param endTime           结束时间戳，默认为当前时间
-     */
-    fun queryFenceHistoryAlarmInfo(
-            startTime: Long = System.currentTimeMillis() / 1000 - 24 * 60 * 60,
-            endTime: Long = System.currentTimeMillis() / 1000
-    ) {
-        mTraceUtils.queryFenceHistoryAlarmInfo(startTime, endTime)
-    }
-
-    /**
-     * 在本地查询被监控者状态
-     * 查询被监控者是在围栏内或围栏外
-     */
-    fun queryMonitoredStatus() {
-        mTraceUtils.queryMonitoredStatus()
     }
 
 }
