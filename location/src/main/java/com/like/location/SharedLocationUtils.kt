@@ -289,7 +289,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
         clearMarkerInfo()
 
         baiduMapView.map.isMyLocationEnabled = false
-        baiduMapView.map.clear()
+        baiduMapView.map.clear()// 清除地图上所有覆盖物
 
         //在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理
         baiduMapView.onDestroy() // 关闭定位图层
