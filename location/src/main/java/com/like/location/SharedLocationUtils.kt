@@ -102,7 +102,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
     fun setMarkerList(markerInfos: List<MarkerInfo>) {
         if (markerInfos.isEmpty()) return
         this.markerInfos.addAll(markerInfos)
-        disposable = RxJavaUtils.interval(period, Schedulers.io()) {
+        disposable = RxJavaUtils.interval(period, Schedulers.io()) { _ ->
             // 查询指定entityName的Entity，并添加到地图上
             val entityNames = markerInfos.map { it.entityName }
             if (entityNames.isNotEmpty()) {
