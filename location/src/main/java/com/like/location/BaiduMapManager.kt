@@ -10,6 +10,9 @@ import com.like.location.util.LocationConstants
 import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
+/**
+ * 百度MapView管理工具类
+ */
 class BaiduMapManager private constructor() {
     companion object : SingletonHolder<BaiduMapManager>(object : FunctionN<BaiduMapManager> {
         override val arity: Int = 0 // number of arguments that must be passed to constructor
