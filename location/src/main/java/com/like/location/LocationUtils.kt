@@ -141,7 +141,7 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
         mSensorManager.unregisterListener(this)
     }
 
-    fun getLocation() = mLocation
+    fun getCurLocation() = mLocation
 
     private fun printLocation(location: BDLocation?) {
         if (location == null) {
