@@ -40,7 +40,6 @@ class SharedLocationUtils(private val baiduMapView: MapView,
 
     private val context: Context by lazy { baiduMapView.context }
     private val markerInfos = mutableListOf<MarkerInfo>()// 需要显示在地图上的marker，不包括自己
-    private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
     private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils(context, baiduMapView.map, serviceId, myEntityName) }
     private var disposable: Disposable? = null
     private var circleFenceInfoList: List<CircleFenceInfo>? = null
@@ -106,7 +105,7 @@ class SharedLocationUtils(private val baiduMapView: MapView,
             // 查询指定entityName的Entity，并添加到地图上
             val entityNames = markerInfos.map { it.entityName }
             if (entityNames.isNotEmpty()) {
-                mTraceUtils.queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
+                TraceUtils.getInstance(context).queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
                     override fun onEntityListCallback(entityListResponse: EntityListResponse?) {
                         Log.d(TAG, "onEntityListCallback ${entityListResponse?.entities}")
                         if (entityListResponse == null || entityListResponse.entities == null || entityListResponse.entities.isEmpty()) {
