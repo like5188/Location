@@ -38,7 +38,7 @@ class ShareLocationActivity : AppCompatActivity() {
         mGlideUtils.downloadImages(
                 listOf(
                         "http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg",
-                        "http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg1"
+                        "http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg"
                 ),
                 { map ->
                     Log.d("ShareLocationActivity", "图标下载成功")
