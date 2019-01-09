@@ -17,7 +17,7 @@ object LocationConstants {
     const val DEFAULT_QUERY_ENTITY_LIST_INTERVAL = 5000L
 
     /**
-     * 点击了覆盖物
+     * 点击了marker
      */
     const val TAG_CLICK_MARKER = "TAG_CLICK_MARKER"
     /**

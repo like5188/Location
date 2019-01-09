@@ -29,6 +29,14 @@ class ShareLocationActivity : AppCompatActivity() {
     fun setMarkerList(view: View) {
         // 为我的所有家人添加marker
         val markerInfos = listOf(
+//                SharedLocationUtils.MarkerInfo(
+//                        "like",
+//                        "http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg",
+//                        "userId",
+//                        "name",
+//                        "userNickName",
+//                        "13300000000"
+//                ),
                 SharedLocationUtils.MarkerInfo(
                         "like1",
                         "http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg",
@@ -55,13 +63,13 @@ class ShareLocationActivity : AppCompatActivity() {
                 CircleFenceInfo().apply {
                     this.id = 1L
                     this.name = "fenceName1"
-                    this.latLng = LatLng(29.0, 106.0)
+                    this.latLng = LatLng(29.533913, 106.493686)
                     this.radius = 50
                 },
                 CircleFenceInfo().apply {
                     this.id = 2L
                     this.name = "fenceName2"
-                    this.latLng = LatLng(29.5, 106.5)
+                    this.latLng = LatLng(29.533993, 106.493886)
                     this.radius = 100
                 }
         )

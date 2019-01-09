@@ -99,14 +99,14 @@ class SharedLocationUtils(private val baiduMapView: MapView,
             mLocationUtils.start()
         }
 
-        if (myIconResId != -1) {
-            startLocationMy(BitmapDescriptorFactory.fromResource(myIconResId))
-        } else if (myIconUrl.isNotEmpty()) {
-            mGlideUtils.downloadImage(myIconUrl, {
+        when {
+            myIconResId != -1 -> startLocationMy(BitmapDescriptorFactory.fromResource(myIconResId))
+            myIconUrl.isNotEmpty() -> mGlideUtils.downloadImage(myIconUrl, {
                 startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker(it)))
             }, {
                 startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker()))
             })
+            else -> startLocationMy(BitmapDescriptorFactory.fromView(wrapMarker()))
         }
     }
 
