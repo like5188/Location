@@ -29,9 +29,9 @@ class SharedLocationUtils(private val context: Context) {
     }
 
     private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
+    private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils.getInstance(context) }
     private val mMarkerManager: MarkerManager by lazy { MarkerManager.getInstance() }
     private val mLocationUtils: LocationUtils by lazy { LocationUtils.getInstance(context) }
-    private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils.getInstance(context) }
     private var serviceId: Long = 0L
     private var disposable: Disposable? = null
 
