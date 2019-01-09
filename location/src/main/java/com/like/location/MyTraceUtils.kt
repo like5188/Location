@@ -23,7 +23,8 @@ import com.like.location.util.SPUtils
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 本设备（自己）的鹰眼轨迹管理工具类。包括围栏的创建及进出告警。
+ * 本设备（自己）的鹰眼轨迹管理工具类。
+ * 包括：自己的轨迹上传、围栏的创建、以及自己进出围栏的告警、。
  * 注意：地图只支持Android v4.0以上系统
  *
  * @param context

@@ -10,6 +10,9 @@ import com.like.location.listener.MyLocationListener
 import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
+/**
+ * 定位工具类
+ */
 class LocationUtils(context: Context) {
     companion object : SingletonHolder<LocationUtils>(object : FunctionN<LocationUtils> {
         override val arity: Int = 1 // number of arguments that must be passed to constructor

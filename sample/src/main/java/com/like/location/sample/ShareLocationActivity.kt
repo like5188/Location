@@ -13,6 +13,7 @@ import com.baidu.mapapi.model.LatLng
 import com.like.location.SharedLocationUtils
 import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
+import com.like.location.entity.MarkerInfo
 import com.like.location.sample.databinding.ActivityShareLocationBinding
 
 class ShareLocationActivity : AppCompatActivity() {
@@ -44,7 +45,7 @@ class ShareLocationActivity : AppCompatActivity() {
                     Log.d("ShareLocationActivity", "图标下载成功")
                     // 为我的所有家人添加marker
                     val markerInfos = listOf(
-                            SharedLocationUtils.MarkerInfo(
+                            MarkerInfo(
                                     "like1",
                                     wrapMarkerView(map["http://imga5.5054399.com/upload_pic/2019/1/5/4399_10184605542.jpg"]),
                                     Bundle().apply {
@@ -53,7 +54,7 @@ class ShareLocationActivity : AppCompatActivity() {
                                         putString("userNickName", "userNickName1")
                                         putString("phone", "13311111111")
                                     }),
-                            SharedLocationUtils.MarkerInfo(
+                            MarkerInfo(
                                     "like2",
                                     wrapMarkerView(map["http://imga3.5054399.com/upload_pic/2018/12/26/4399_17240206556.jpg"]),
                                     Bundle().apply {
