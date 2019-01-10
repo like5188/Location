@@ -10,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.model.LatLng
-import com.like.location.util.BaiduMapManager
 import com.like.location.SharedLocationUtils
 import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
@@ -21,9 +20,7 @@ class ShareLocationActivity : AppCompatActivity() {
     private val mBinding: ActivityShareLocationBinding by lazy {
         DataBindingUtil.setContentView<ActivityShareLocationBinding>(this, R.layout.activity_share_location)
     }
-    private val mSharedLocationUtils: SharedLocationUtils by lazy {
-        SharedLocationUtils.getInstance(this)
-    }
+    private val mSharedLocationUtils: SharedLocationUtils by lazy { SharedLocationUtils.getInstance(this) }
     private val mGlideUtils: GlideUtils by lazy { GlideUtils(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,9 +29,7 @@ class ShareLocationActivity : AppCompatActivity() {
         SDKInitializer.initialize(this.applicationContext)
         mBinding
         mSharedLocationUtils.init(mBinding.mapView, 200897, "like")
-        BaiduMapManager.getInstance().setMyLocationIconView(
-                wrapMarkerView(BitmapFactory.decodeResource(resources, R.drawable.icon_marker_default))
-        )
+        mSharedLocationUtils.setMyLocationIconView(wrapMarkerView(BitmapFactory.decodeResource(resources, R.drawable.icon_marker_default)))
     }
 
     fun setMarkerList(view: View) {
@@ -66,7 +61,7 @@ class ShareLocationActivity : AppCompatActivity() {
                                         putString("phone", "13322222222")
                                     })
                     )
-                    mSharedLocationUtils.setMarkerList(markerInfos)
+                    mSharedLocationUtils.createMarkers(markerInfos, 999999)
                 },
                 {
                     Log.e("ShareLocationActivity", "图标下载失败：${it.message}")
@@ -90,15 +85,13 @@ class ShareLocationActivity : AppCompatActivity() {
                     this.radius = 100
                 }
         )
-        MyTraceUtils.getInstance(this).createLocalFences(circleFenceInfoList)
+        mSharedLocationUtils.createLocalFences(circleFenceInfoList)
         // 设置第一个围栏为地图中心
-        BaiduMapManager.getInstance().setMapCenter(circleFenceInfoList[0].latLng)
+        mSharedLocationUtils.locationToFence(0)
     }
 
     fun locationFences(view: View) {
-        MyTraceUtils.getInstance(this).getFenceInfo(0)?.apply {
-            BaiduMapManager.getInstance().setMapCenter(latLng)
-        }
+        mSharedLocationUtils.locationToFence(0)
     }
 
     override fun onPause() {

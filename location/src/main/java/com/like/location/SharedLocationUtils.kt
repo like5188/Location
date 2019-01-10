@@ -2,9 +2,11 @@ package com.like.location
 
 import android.content.Context
 import android.util.Log
+import android.view.View
 import com.baidu.mapapi.map.MapView
 import com.baidu.trace.api.entity.EntityListResponse
 import com.baidu.trace.api.entity.OnEntityListener
+import com.like.location.entity.CircleFenceInfo
 import com.like.location.entity.MarkerInfo
 import com.like.location.util.*
 import io.reactivex.disposables.Disposable
@@ -31,6 +33,7 @@ class SharedLocationUtils(private val context: Context) {
     private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
     private val mLocationUtils: LocationUtils by lazy { LocationUtils.getInstance(context) }
     private var mDisposable: Disposable? = null
+    private var isInitialized = false
 
     /**
      * @param baiduMapView          百度的MapView
@@ -38,6 +41,8 @@ class SharedLocationUtils(private val context: Context) {
      * @param myEntityName          自己的entityName，一般为userId
      */
     fun init(baiduMapView: MapView, serviceId: Long, myEntityName: String) {
+        if (isInitialized) return
+        isInitialized = true
         mBaiduMapManager.init(baiduMapView)
         mTraceUtils.init(baiduMapView.map, serviceId, myEntityName)
         mTraceUtils.startTrace()
@@ -46,19 +51,43 @@ class SharedLocationUtils(private val context: Context) {
     }
 
     /**
-     * 设置Marker
+     * 设置自己位置的图标视图
+     */
+    fun setMyLocationIconView(view: View) {
+        mBaiduMapManager.setMyLocationIconView(view)
+    }
+
+    /**
+     * 定位到指定围栏
+     */
+    fun locationToFence(index: Int) {
+        mTraceUtils.getFenceInfo(index)?.apply {
+            mBaiduMapManager.setMapCenter(latLng)
+        }
+    }
+
+    /**
+     * 创建本地围栏，并显示到地图上
+     */
+    fun createLocalFences(circleFenceInfoList: List<CircleFenceInfo>) {
+        mTraceUtils.createLocalFences(circleFenceInfoList)
+    }
+
+    /**
+     * 创建Marker，并显示到地图上
      *
      * @param markerInfos
-     * @param period        查询好友数据的周期，毫秒，默认5000
+     * @param activeTime    在地图上显示指定时间内定位且上传了轨迹点的entity。默认30秒
+     * @param period        更新好友位置数据的周期，毫秒，默认5000
      */
-    fun setMarkerList(markerInfos: List<MarkerInfo>, period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
+    fun createMarkers(markerInfos: List<MarkerInfo>, activeTime: Int = 30, period: Long = 5000) {
         if (markerInfos.isEmpty()) return
         mMarkerManager.addMarkerList(markerInfos)
         mDisposable = RxJavaUtils.interval(period, Schedulers.io()) { _ ->
             // 查询指定entityName的Entity，并添加到地图上
             val entityNames = mMarkerManager.getEntityNames()
             if (entityNames.isNotEmpty()) {
-                TraceUtils.getInstance(context).queryEntityList(entityNames, 30000, listener = object : OnEntityListener() {
+                mTraceUtils.queryEntityList(entityNames, activeTime, listener = object : OnEntityListener() {
                     override fun onEntityListCallback(entityListResponse: EntityListResponse?) {
                         Log.d(TAG, "onEntityListCallback ${entityListResponse?.entities}")
                         if (entityListResponse == null || entityListResponse.entities == null || entityListResponse.entities.isEmpty()) {

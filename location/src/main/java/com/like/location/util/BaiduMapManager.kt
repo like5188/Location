@@ -28,6 +28,7 @@ class BaiduMapManager private constructor() {
      * 初始化百度地图
      */
     fun init(baiduMapView: MapView) {
+        if (isInitialized()) return
         this.baiduMapView = baiduMapView
         // 隐藏百度地图的logo
         val child = baiduMapView.getChildAt(1)

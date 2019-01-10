@@ -73,6 +73,15 @@ class TraceUtils private constructor(private val context: Context) {
         private val TAG = TraceUtils::class.java.simpleName
         const val KEY_IS_TRACE_STARTED = "is_trace_started"
         const val KEY_IS_GATHER_STARTED = "is_gather_started"
+        /**
+         * 默认定位周期(单位:秒)
+         */
+        const val DEFAULT_GATHER_INTERVAL = 5
+
+        /**
+         * 默认打包回传周期(单位:秒)
+         */
+        const val DEFAULT_PACK_INTERVAL = 10
     }
 
     private lateinit var baiduMap: BaiduMap
@@ -229,6 +238,8 @@ class TraceUtils private constructor(private val context: Context) {
         }
     }
 
+    fun isInitialized() = ::baiduMap.isInitialized
+
     /**
      * 初始化鹰眼轨迹服务，必须在调用其它方法之前调用
      *
@@ -237,6 +248,7 @@ class TraceUtils private constructor(private val context: Context) {
      * @param myEntityName      设备标识
      */
     fun init(baiduMap: BaiduMap, serviceId: Long, myEntityName: String) {
+        if (isInitialized()) return
         this.baiduMap = baiduMap
         this.serviceId = serviceId
         this.myEntityName = myEntityName
@@ -247,7 +259,7 @@ class TraceUtils private constructor(private val context: Context) {
         SPUtils.getInstance().remove(KEY_IS_GATHER_STARTED)
 
         // 设置定位和打包周期
-        mTraceClient.setInterval(LocationConstants.DEFAULT_GATHER_INTERVAL, LocationConstants.DEFAULT_PACK_INTERVAL)
+        mTraceClient.setInterval(DEFAULT_GATHER_INTERVAL, DEFAULT_PACK_INTERVAL)
         mTraceClient.setOnTraceListener(mTraceListener)
 
         // 查询轨迹接口提供了HTTP和HTTPS两种协议。使用HTTPS时，可能会降低请求效率。

@@ -2,21 +2,6 @@ package com.like.location.util
 
 object LocationConstants {
     /**
-     * 默认定位周期(单位:秒)
-     */
-    const val DEFAULT_GATHER_INTERVAL = 5
-
-    /**
-     * 默认打包回传周期(单位:秒)
-     */
-    const val DEFAULT_PACK_INTERVAL = 10
-
-    /**
-     * 循环查询entityList的时间间隔(单位:毫秒)
-     */
-    const val DEFAULT_QUERY_ENTITY_LIST_INTERVAL = 5000L
-
-    /**
      * 点击了marker
      */
     const val TAG_CLICK_MARKER = "TAG_CLICK_MARKER"
