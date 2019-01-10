@@ -51,6 +51,38 @@
 5、导航。使用NavigationUtils工具类。自动选择高德、百度进行导航。
 
 6、好友位置实时共享。使用SharedLocationUtils工具类。
+```java
+    LiveDataBus注册
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        liveDataBusRegister(this)
+    }
+
+    /*************************接收事件**************************/
+    // 点击了marker
+    @BusObserver([LocationConstants.TAG_CLICK_MARKER])
+    fun onClickMarker(markerInfo: MarkerInfo?) {
+        Log.d("ShareLocationActivity", markerInfo.toString())
+    }
+
+    // 点击了围栏上的覆盖物
+    @BusObserver([LocationConstants.TAG_CLICK_FENCE_OVERLAY])
+    fun onClickFenceOverlay(circleFenceInfo: CircleFenceInfo) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
+    }
+
+    // 走进围栏
+    @BusObserver([LocationConstants.TAG_MOVE_IN_FENCE])
+    fun onMoveInFence(circleFenceInfo: CircleFenceInfo?) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
+    }
+
+    // 走出围栏
+    @BusObserver([LocationConstants.TAG_MOVE_OUT_FENCE])
+    fun onMoveOutFence(circleFenceInfo: CircleFenceInfo?) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
+    }
+```
 
 7、Proguard
 ```java
