@@ -1,4 +1,4 @@
-package com.like.location
+package com.like.location.util
 
 import android.view.View
 import android.widget.ImageView
@@ -6,8 +6,6 @@ import android.widget.ZoomControls
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.like.livedatabus.LiveDataBus
-import com.like.location.util.LocationConstants
-import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
 /**

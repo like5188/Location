@@ -1,11 +1,10 @@
-package com.like.location
+package com.like.location.util
 
 import com.baidu.mapapi.map.BaiduMap
 import com.baidu.mapapi.map.Marker
 import com.baidu.mapapi.map.MarkerOptions
 import com.baidu.mapapi.model.LatLng
 import com.like.location.entity.MarkerInfo
-import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
 /**

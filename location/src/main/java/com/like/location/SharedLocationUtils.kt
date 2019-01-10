@@ -6,9 +6,7 @@ import com.baidu.mapapi.map.MapView
 import com.baidu.trace.api.entity.EntityListResponse
 import com.baidu.trace.api.entity.OnEntityListener
 import com.like.location.entity.MarkerInfo
-import com.like.location.util.LocationConstants
-import com.like.location.util.RxJavaUtils
-import com.like.location.util.SingletonHolder
+import com.like.location.util.*
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlin.jvm.functions.FunctionN

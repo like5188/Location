@@ -13,12 +13,13 @@ import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.MapView
 import com.baidu.mapapi.map.MyLocationData
 import com.like.location.listener.MyLocationListener
+import com.like.location.util.BaiduMapManager
 import com.like.location.util.SingletonHolder
 import kotlin.jvm.functions.FunctionN
 
 /**
  * 定位工具类。
- * 获取自己的位置，或者通过[setMapView]方法设置地图显示自己的位置。
+ * 获取自己的位置，或者通过[setMapView]方法设置地图后，可以在地图上显示自己的位置。只要定位SDK检测到位置变化就会自动更新位置。
  */
 class LocationUtils private constructor(context: Context) : SensorEventListener {
     companion object : SingletonHolder<LocationUtils>(object : FunctionN<LocationUtils> {
@@ -35,7 +36,7 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
     private val mSensorManager: SensorManager by lazy { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     private var lastX: Double = 0.0
     // 定位自己
-    private var mCurrentDirection = 0f
+    private var mDirection = 0f
     private var mLocation: BDLocation? = null
     private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
 
@@ -68,8 +69,8 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
         sensorEvent ?: return
         val x = sensorEvent.values[SensorManager.DATA_X].toDouble()
         if (Math.abs(x - lastX) > 1.0) {
-            mCurrentDirection = x.toFloat()
-            updateMyLocation()
+            mDirection = x.toFloat()
+            updateLocationOnMapView()
         }
         lastX = x
     }
@@ -88,7 +89,7 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
                 listener?.onReceiveLocation(location)
                 mLocation = location
                 if (mBaiduMapManager.isInitialized()) {
-                    updateMyLocation()
+                    updateLocationOnMapView()
                 }
             }
         })
@@ -96,14 +97,14 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
     }
 
     /**
-     * 更新自己的位置
+     * 更新自己在地图上的位置
      */
-    fun updateMyLocation() {
+    fun updateLocationOnMapView() {
         mLocation?.apply {
             // 显示自己的位置，包括方向只是图标，精度圈
             val locData = MyLocationData.Builder()
                     .accuracy(radius)
-                    .direction(mCurrentDirection)// 此处设置开发者获取到的方向信息，顺时针0-360
+                    .direction(mDirection)// 此处设置开发者获取到的方向信息，顺时针0-360
                     .latitude(latitude)
                     .longitude(longitude)
                     .build()
@@ -141,7 +142,7 @@ class LocationUtils private constructor(context: Context) : SensorEventListener 
         mSensorManager.unregisterListener(this)
     }
 
-    fun getCurLocation() = mLocation
+    fun getLocation() = mLocation
 
     private fun printLocation(location: BDLocation?) {
         if (location == null) {
