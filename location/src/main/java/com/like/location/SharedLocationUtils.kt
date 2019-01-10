@@ -26,12 +26,11 @@ class SharedLocationUtils(private val context: Context) {
         private val TAG = SharedLocationUtils::class.java.simpleName
     }
 
+    private val mMarkerManager: MarkerManager by lazy { MarkerManager.getInstance() }
     private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
     private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
-    private val mMarkerManager: MarkerManager by lazy { MarkerManager.getInstance() }
     private val mLocationUtils: LocationUtils by lazy { LocationUtils.getInstance(context) }
-    private var serviceId: Long = 0L
-    private var disposable: Disposable? = null
+    private var mDisposable: Disposable? = null
 
     /**
      * @param baiduMapView          百度的MapView
@@ -39,7 +38,6 @@ class SharedLocationUtils(private val context: Context) {
      * @param myEntityName          自己的entityName，一般为userId
      */
     fun init(baiduMapView: MapView, serviceId: Long, myEntityName: String) {
-        this.serviceId = serviceId
         mBaiduMapManager.init(baiduMapView)
         mTraceUtils.init(baiduMapView.map, serviceId, myEntityName)
         mTraceUtils.startTrace()
@@ -56,7 +54,7 @@ class SharedLocationUtils(private val context: Context) {
     fun setMarkerList(markerInfos: List<MarkerInfo>, period: Long = LocationConstants.DEFAULT_QUERY_ENTITY_LIST_INTERVAL) {
         if (markerInfos.isEmpty()) return
         mMarkerManager.addMarkerList(markerInfos)
-        disposable = RxJavaUtils.interval(period, Schedulers.io()) { _ ->
+        mDisposable = RxJavaUtils.interval(period, Schedulers.io()) { _ ->
             // 查询指定entityName的Entity，并添加到地图上
             val entityNames = mMarkerManager.getEntityNames()
             if (entityNames.isNotEmpty()) {
@@ -109,7 +107,7 @@ class SharedLocationUtils(private val context: Context) {
     }
 
     fun onDestroy() {
-        disposable?.let {
+        mDisposable?.let {
             if (!it.isDisposed) {
                 it.dispose()
             }
