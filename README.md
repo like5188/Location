@@ -86,4 +86,14 @@
 
 7、Proguard
 ```java
+    -keep class com.baidu.** { *; }
+    -keep class vi.com.gdi.bgl.android.**{*;}
+    -keep class mapsdkvi.com.**{*;}
+    -dontwarn com.baidu.**
+    -dontwarn javax.annotation.**
+    -dontwarn org.codehaus.**
+
+    #livedatabus
+    -keep class * extends com.like.livedatabus.Bridge
+    -keep class com.like.livedatabus_annotations.**{*;}
 ```

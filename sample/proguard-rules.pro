@@ -23,3 +23,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class com.baidu.** { *; }
+-keep class vi.com.gdi.bgl.android.**{*;}
+-keep class mapsdkvi.com.**{*;}
+-dontwarn com.baidu.**
+-dontwarn javax.annotation.**
+-dontwarn org.codehaus.**
+
+#livedatabus
+-keep class * extends com.like.livedatabus.Bridge
+-keep class com.like.livedatabus_annotations.**{*;}
