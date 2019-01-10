@@ -112,13 +112,9 @@ class SharedLocationUtils(private val context: Context) {
                 it.dispose()
             }
         }
-
         mLocationUtils.stop()
-
         mTraceUtils.destroy()
-
         mMarkerManager.clearMarkerInfo()
-
         mBaiduMapManager.destroy()
     }
 
