@@ -10,11 +10,14 @@ import android.view.LayoutInflater
 import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.model.LatLng
+import com.like.livedatabus.liveDataBusRegister
+import com.like.livedatabus_annotations.BusObserver
 import com.like.location.SharedLocationUtils
 import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
 import com.like.location.entity.MarkerInfo
 import com.like.location.sample.databinding.ActivityShareLocationBinding
+import com.like.location.util.LocationConstants
 
 class ShareLocationActivity : AppCompatActivity() {
     private val mBinding: ActivityShareLocationBinding by lazy {
@@ -25,6 +28,7 @@ class ShareLocationActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        liveDataBusRegister(this)
         // 在使用地图SDK各组件之前初始化context信息，传入ApplicationContext
         SDKInitializer.initialize(this.applicationContext)
         mBinding
@@ -112,6 +116,30 @@ class ShareLocationActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         mSharedLocationUtils.onDestroy()
+    }
+
+    // 点击了marker
+    @BusObserver([LocationConstants.TAG_CLICK_MARKER])
+    fun onClickMarker(markerInfo: MarkerInfo?) {
+        Log.d("ShareLocationActivity", markerInfo.toString())
+    }
+
+    // 点击了围栏上的覆盖物
+    @BusObserver([LocationConstants.TAG_CLICK_FENCE_OVERLAY])
+    fun onClickFenceOverlay(circleFenceInfo: CircleFenceInfo) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
+    }
+
+    // 走进围栏
+    @BusObserver([LocationConstants.TAG_MOVE_IN_FENCE])
+    fun onMoveInFence(circleFenceInfo: CircleFenceInfo?) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
+    }
+
+    // 走出围栏
+    @BusObserver([LocationConstants.TAG_MOVE_OUT_FENCE])
+    fun onMoveOutFence(circleFenceInfo: CircleFenceInfo?) {
+        Log.d("ShareLocationActivity", circleFenceInfo.toString())
     }
 
     /**

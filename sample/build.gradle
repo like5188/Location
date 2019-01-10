@@ -82,5 +82,8 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.0.1'// glide对应的图片处理库，可以转换图片为圆形、圆角矩形、高斯模糊等等效果
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
 
+    implementation 'com.github.like5188.LiveDataBus:livedatabus:1.2.2'
+    kapt 'com.github.like5188.LiveDataBus:livedatabus_compiler:1.2.2'
+
     implementation project(':location')
 }
