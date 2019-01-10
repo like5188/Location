@@ -27,7 +27,7 @@ class SharedLocationUtils(private val context: Context) {
     }
 
     private val mBaiduMapManager: BaiduMapManager by lazy { BaiduMapManager.getInstance() }
-    private val mMyTraceUtils: MyTraceUtils by lazy { MyTraceUtils.getInstance(context) }
+    private val mTraceUtils: TraceUtils by lazy { TraceUtils.getInstance(context) }
     private val mMarkerManager: MarkerManager by lazy { MarkerManager.getInstance() }
     private val mLocationUtils: LocationUtils by lazy { LocationUtils.getInstance(context) }
     private var serviceId: Long = 0L
@@ -41,8 +41,8 @@ class SharedLocationUtils(private val context: Context) {
     fun init(baiduMapView: MapView, serviceId: Long, myEntityName: String) {
         this.serviceId = serviceId
         mBaiduMapManager.init(baiduMapView)
-        mMyTraceUtils.init(baiduMapView.map, serviceId, myEntityName)
-        mMyTraceUtils.startTrace()
+        mTraceUtils.init(baiduMapView.map, serviceId, myEntityName)
+        mTraceUtils.startTrace()
         mLocationUtils.setMapView(baiduMapView)
         mLocationUtils.start()
     }
@@ -60,7 +60,7 @@ class SharedLocationUtils(private val context: Context) {
             // 查询指定entityName的Entity，并添加到地图上
             val entityNames = mMarkerManager.getEntityNames()
             if (entityNames.isNotEmpty()) {
-                TraceUtils.getInstance(context).queryEntityList(serviceId, entityNames, 30000, listener = object : OnEntityListener() {
+                TraceUtils.getInstance(context).queryEntityList(entityNames, 30000, listener = object : OnEntityListener() {
                     override fun onEntityListCallback(entityListResponse: EntityListResponse?) {
                         Log.d(TAG, "onEntityListCallback ${entityListResponse?.entities}")
                         if (entityListResponse == null || entityListResponse.entities == null || entityListResponse.entities.isEmpty()) {
@@ -117,7 +117,7 @@ class SharedLocationUtils(private val context: Context) {
 
         mLocationUtils.stop()
 
-        mMyTraceUtils.destroy()
+        mTraceUtils.destroy()
 
         mMarkerManager.clearMarkerInfo()
 

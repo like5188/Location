@@ -11,7 +11,6 @@ import android.view.View
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.model.LatLng
 import com.like.location.util.BaiduMapManager
-import com.like.location.MyTraceUtils
 import com.like.location.SharedLocationUtils
 import com.like.location.databinding.ViewMapMarkerBinding
 import com.like.location.entity.CircleFenceInfo
