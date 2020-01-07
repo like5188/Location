@@ -254,7 +254,7 @@ class LocationUtils private constructor() {
 //        locationOption.setOpenAutoNotifyMode()//设置打开自动回调位置模式，该开关打开后，期间只要定位SDK检测到位置变化就会主动回调给开发者，该模式下开发者无需再关心定位间隔是多少，定位SDK本身发现位置变化就会及时回调给开发者
 //        locationOption.setWifiCacheTimeOut(5 * 60 * 1000) //可选，V7.2版本新增能力 如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
         // 设置定位场景，根据定位场景快速生成对应的定位参数  以出行场景为例
-        // 1） 签到场景：只进行一次定位返回最接近真实位置的定位结果
+        // 1）签到场景：只进行一次定位返回最接近真实位置的定位结果
         // 2）运动场景：高精度连续定位，适用于运动类开发者场景
         // 3）出行场景：高精度连续定位，适用于运动类开发者场景
 //        locationOption.setLocationPurpose(LocationClientOption.BDLocationPurpose.Sport)
