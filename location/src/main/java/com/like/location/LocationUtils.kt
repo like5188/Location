@@ -222,9 +222,7 @@ class LocationUtils private constructor() {
         }
     }
 
-    fun getLocation() = mLocation
-
-    private fun getDefaultLocationClientOption(): LocationClientOption {
+    fun getDefaultLocationClientOption(): LocationClientOption {
         val locationOption = LocationClientOption()
         // GPS定位精度均值为10米，WIFI定位精度均值为24米，基站定位精度均值为210米。
         // 高精度定位模式：这种定位模式下，会同时使用网络定位和GPS定位，优先返回最高精度的定位结果；
