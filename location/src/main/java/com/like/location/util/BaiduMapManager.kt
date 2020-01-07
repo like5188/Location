@@ -3,6 +3,7 @@ package com.like.location.util
 import android.view.View
 import android.widget.ImageView
 import android.widget.ZoomControls
+import com.baidu.location.BDLocation
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.like.livedatabus.LiveDataBus
@@ -67,6 +68,17 @@ class BaiduMapManager private constructor() {
      * 设置自己的位置
      */
     fun setMyLocationData(locationData: MyLocationData) {
+        baiduMapView.map.setMyLocationData(locationData)
+    }
+
+    fun setMyLocation(location: BDLocation) {
+        // 显示自己的位置，包括方向只是图标，精度圈
+        val locationData = MyLocationData.Builder()
+                .direction(location.direction)// 此处设置开发者获取到的方向信息，顺时针0-360
+                .accuracy(location.radius)
+                .latitude(location.latitude)
+                .longitude(location.longitude)
+                .build()
         baiduMapView.map.setMyLocationData(locationData)
     }
 
