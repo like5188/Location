@@ -1,11 +1,10 @@
 package com.like.location.sample
 
-import android.Manifest
 import android.content.Intent
-import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import com.like.location.LocationUtils
 import com.like.location.NavigationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
@@ -18,28 +17,33 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-        checkPermissionsAndRun(
-                "hahaha",
-                1,
-                {
-                    LocationUtils.getInstance(this).addListener()
-                },
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        LocationUtils.getInstance().init(this)
     }
 
     fun start(view: View) {
-        LocationUtils.getInstance(this).start()
+        LocationUtils.getInstance().addOnReceiveLocationListener {
+
+        }
+        LocationUtils.getInstance().addOnNotifyListener(29.535044, 106.492255, 40.0f) { location, distance ->
+
+        }
+        LocationUtils.getInstance().start()
     }
 
     fun stop(view: View) {
-        LocationUtils.getInstance(this).stop()
+        LocationUtils.getInstance().removeOnReceiveLocationListener()
+        LocationUtils.getInstance().removeOnNotifyListener()
+        LocationUtils.getInstance().stop()
     }
 
     fun reStart(view: View) {
-        LocationUtils.getInstance(this).restart()
+        LocationUtils.getInstance().addOnReceiveLocationListener {
+
+        }
+        LocationUtils.getInstance().addOnNotifyListener(29.535044, 106.492255, 40.0f) { location, distance ->
+
+        }
+        LocationUtils.getInstance().restart()
     }
 
     fun navigation(view: View) {
