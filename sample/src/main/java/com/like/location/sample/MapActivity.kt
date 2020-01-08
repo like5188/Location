@@ -52,7 +52,7 @@ class MapActivity : AppCompatActivity() {
     fun location(view: View) {
         mBinding.mapView.map.isMyLocationEnabled = true
         LocationUtils.getInstance().addOnReceiveLocationListener {
-            // 显示自己的位置，包括方向只是图标，精度圈
+            // 显示自己的位置，包括方向、图标、精度圈
             val locationData = MyLocationData.Builder()
                     .direction(it.direction)// 此处设置开发者获取到的方向信息，顺时针0-360
                     .accuracy(it.radius)
@@ -60,6 +60,7 @@ class MapActivity : AppCompatActivity() {
                     .longitude(it.longitude)
                     .build()
             mBinding.mapView.map.setMyLocationData(locationData)
+            // 把地图移动到自己的位置
             val latLng = LatLng(it.latitude, it.longitude)
             val mapStatusBuilder = MapStatus.Builder().target(latLng).zoom(18.0f)
             val mapStatusUpdate: MapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mapStatusBuilder.build())
