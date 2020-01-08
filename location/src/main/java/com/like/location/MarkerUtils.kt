@@ -10,7 +10,7 @@ import com.baidu.mapapi.map.MarkerOptions
  * [Marker]管理工具类
  */
 class MarkerUtils(private val mBaiduMap: BaiduMap) {
-    private val mMarkers = mutableListOf<Marker>()
+    private val mMarkers = mutableSetOf<Marker>()
     private var mMarkerClickListener1: OnMarkerClickListener? = null
     private val mMarkerClickListener: OnMarkerClickListener = object : OnMarkerClickListener {
         override fun onMarkerClick(marker: Marker?): Boolean {
