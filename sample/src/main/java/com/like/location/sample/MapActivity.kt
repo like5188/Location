@@ -28,7 +28,7 @@ class MapActivity : AppCompatActivity() {
         MarkerUtils(mBinding.mapView.map)
     }
     private val mLocationUtils: LocationUtils by lazy {
-        LocationUtils()
+        LocationUtils(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,11 +47,10 @@ class MapActivity : AppCompatActivity() {
                 // 隐藏地图上的所有InfoWindow
                 mBaiduMapUtils.hideInfoWindow()
             }
-            val infoWindow = InfoWindow(BitmapDescriptorFactory.fromView(button), marker.position, -47, listener)
+            val infoWindow = InfoWindow(BitmapDescriptorFactory.fromView(button), marker.position, -150, listener)
             mBaiduMapUtils.showInfoWindow(infoWindow)
             true
         })
-        mLocationUtils.init(this)
     }
 
     fun createMarker(view: View) {

@@ -15,13 +15,12 @@ class MainActivity : AppCompatActivity() {
         DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
     }
     private val mLocationUtils: LocationUtils by lazy {
-        LocationUtils()
+        LocationUtils(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-        mLocationUtils.init(this)
     }
 
     fun getLocation(view: View) {
