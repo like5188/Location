@@ -10,9 +10,9 @@
 
 2、包含的工具类有：BaiduMapUtils、LocationUtils、MarkerUtils、NavigationUtils
 
-3、已经做了权限处理。
+3、导航。使用NavigationUtils工具类。自动选择高德、百度进行导航。
 
-4、导航。使用NavigationUtils工具类。自动选择高德、百度进行导航。
+4、已经做了权限、混淆处理。
 
 ## 使用方法：
 
