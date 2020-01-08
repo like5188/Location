@@ -102,18 +102,17 @@ class LocationUtils {
     constructor(fragmentActivity: FragmentActivity) {
         mContext = fragmentActivity.applicationContext
         mPermissionUtils = PermissionUtils(fragmentActivity)
-        isProviderEnabled()
         init()
     }
 
     constructor(fragment: Fragment) {
         mContext = fragment.context?.applicationContext
         mPermissionUtils = PermissionUtils(fragment)
-        isProviderEnabled()
         init()
     }
 
     private fun init() {
+        isProviderEnabled()
         mLocationClient.registerNotify(mBDNotifyListener)
         mLocationClient.registerLocationListener(mBDAbstractLocationListener)
     }
