@@ -68,6 +68,7 @@ class MapActivity : AppCompatActivity() {
 
     fun removeMarker(view: View) {
         mMarkerUtils.clear()
+        mBaiduMapUtils.hideInfoWindow()
     }
 
     fun location(view: View) {
