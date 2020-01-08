@@ -44,8 +44,8 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="shareLocation"
-            android:text="共享位置"
+            android:onClick="map"
+            android:text="地图"
             android:textAllCaps="false" />
 
     </LinearLayout>

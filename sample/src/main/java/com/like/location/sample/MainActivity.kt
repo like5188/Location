@@ -66,8 +66,12 @@ class MainActivity : AppCompatActivity() {
         NavigationUtils.navigation(this, 29.0, 106.0)
     }
 
-    fun shareLocation(view: View) {
-        startActivity(Intent(this, ShareLocationActivity::class.java))
+    fun map(view: View) {
+        startActivity(Intent(this, MapActivity::class.java))
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        LocationUtils.getInstance().destroy()
+    }
 }

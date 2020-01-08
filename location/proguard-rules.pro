@@ -24,5 +24,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class com.baidu.** {*;}
--keep class vi.com.** {*;}
+-keep class mapsdkvi.com.** {*;}
 -dontwarn com.baidu.**
