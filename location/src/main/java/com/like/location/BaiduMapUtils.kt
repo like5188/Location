@@ -90,12 +90,18 @@ class BaiduMapUtils(private val mMapView: MapView) {
         mMapView.map.animateMapStatus(mapStatusUpdate)
     }
 
+    /**
+     * 显示 InfoWindow, 该接口会先隐藏其他已添加的InfoWindow, 再添加新的InfoWindow
+     */
     fun showInfoWindow(infoWindow: InfoWindow) {
         mMapView.map.showInfoWindow(infoWindow)
     }
 
-    fun hideInfoWindow(infoWindow: InfoWindow) {
-        mMapView.map.hideInfoWindow(infoWindow)
+    /**
+     * 隐藏地图上的所有InfoWindow
+     */
+    fun hideInfoWindow() {
+        mMapView.map.hideInfoWindow()
     }
 
     fun onPause() {

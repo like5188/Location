@@ -1,13 +1,16 @@
 package com.like.location.sample
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.*
+import com.baidu.mapapi.map.InfoWindow.OnInfoWindowClickListener
 import com.baidu.mapapi.model.LatLng
 import com.like.location.BaiduMapUtils
 import com.like.location.LocationUtils
@@ -32,7 +35,19 @@ class MapActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mBinding
         mMarkerUtils.setOnMarkerClickListener(BaiduMap.OnMarkerClickListener { marker ->
-            val infoWindow = InfoWindow(mBaiduMapUtils.getMapView(), marker?.position, -20)
+            val button = Button(applicationContext)
+            button.text = "更改位置"
+            button.setTextColor(Color.BLACK)
+            button.width = 300
+            // InfoWindow点击事件监听接口
+            val listener = OnInfoWindowClickListener {
+                val latLng = marker.position
+                val latLngNew = LatLng(latLng.latitude + 0.005, latLng.longitude + 0.005)
+                marker.position = latLngNew
+                // 隐藏地图上的所有InfoWindow
+                mBaiduMapUtils.hideInfoWindow()
+            }
+            val infoWindow = InfoWindow(BitmapDescriptorFactory.fromView(button), marker.position, -47, listener)
             mBaiduMapUtils.showInfoWindow(infoWindow)
             true
         })
