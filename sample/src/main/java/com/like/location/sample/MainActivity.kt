@@ -14,52 +14,38 @@ class MainActivity : AppCompatActivity() {
     private val mBinding: ActivityMainBinding by lazy {
         DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
     }
+    private val mLocationUtils: LocationUtils by lazy {
+        LocationUtils()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding
-        LocationUtils.getInstance().init(this)
+        mLocationUtils.init(this)
     }
 
     fun getLocation(view: View) {
-        LocationUtils.getInstance().addOnReceiveLocationListener {
-
-        }
         val locationOption = LocationClientOption()
         // 设置定位场景，根据定位场景快速生成对应的定位参数  以出行场景为例
         // 1）签到场景：只进行一次定位返回最接近真实位置的定位结果
         // 2）运动场景：高精度连续定位，适用于运动类开发者场景
         // 3）出行场景：高精度连续定位，适用于运动类开发者场景
         locationOption.setLocationPurpose(LocationClientOption.BDLocationPurpose.SignIn)
-        LocationUtils.getInstance().setLocationClientOption(locationOption)
-        LocationUtils.getInstance().start()
+        mLocationUtils.setLocationClientOption(locationOption)
+        mLocationUtils.start()
     }
 
     fun start(view: View) {
-        LocationUtils.getInstance().addOnReceiveLocationListener {
-
-        }
-        LocationUtils.getInstance().addOnNotifyListener(29.535044, 106.492255, 40.0f) { location, distance ->
-
-        }
-        LocationUtils.getInstance().setLocationClientOption(LocationUtils.getInstance().getDefaultLocationClientOption())
-        LocationUtils.getInstance().start()
+        mLocationUtils.setLocationClientOption(mLocationUtils.getDefaultLocationClientOption())
+        mLocationUtils.start()
     }
 
     fun stop(view: View) {
-        LocationUtils.getInstance().removeOnReceiveLocationListener()
-        LocationUtils.getInstance().removeOnNotifyListener()
-        LocationUtils.getInstance().stop()
+        mLocationUtils.stop()
     }
 
     fun reStart(view: View) {
-        LocationUtils.getInstance().addOnReceiveLocationListener {
-
-        }
-        LocationUtils.getInstance().addOnNotifyListener(29.535044, 106.492255, 40.0f) { location, distance ->
-
-        }
-        LocationUtils.getInstance().restart()
+        mLocationUtils.restart()
     }
 
     fun navigation(view: View) {
@@ -72,6 +58,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        LocationUtils.getInstance().destroy()
+        mLocationUtils.onDestroy()
     }
 }

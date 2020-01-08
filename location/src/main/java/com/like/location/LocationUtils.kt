@@ -12,16 +12,11 @@ import com.baidu.location.*
 import com.like.location.util.PermissionUtils
 
 /**
- * 定位工具类。
+ * [LocationClient]实现的定位工具类。
  */
-class LocationUtils private constructor() {
+class LocationUtils {
     companion object {
         private const val TAG = "LocationUtils"
-        fun getInstance() = Holder.instance
-    }
-
-    private object Holder {
-        internal val instance = LocationUtils()
     }
 
     private var mContext: Context? = null
@@ -32,7 +27,7 @@ class LocationUtils private constructor() {
     }
     private var mLocation: BDLocation? = null
     // 位置到达监听。定位SDK支持位置提醒功能，位置提醒最多提醒3次，3次过后将不再提醒。假如需要再次提醒、或者要修改提醒点坐标，都可通过函数SetNotifyLocation()来实现。
-    private var mOnNotify: ((BDLocation, Float) -> Unit)? = null
+    private var mBDNotifyListener1: BDNotifyListener? = null
     private val mBDNotifyListener: BDNotifyListener = object : BDNotifyListener() {
         /**
          * 位置提醒功能，可供地理围栏需求比较小的开发者使用
@@ -43,11 +38,11 @@ class LocationUtils private constructor() {
         override fun onNotify(location: BDLocation, distance: Float) {
             super.onNotify(location, distance)
             Log.d(TAG, "onNotify distance=$distance")
-            mOnNotify?.invoke(location, distance)
+            mBDNotifyListener1?.onNotify(location, distance)
         }
     }
     // 接收到位置信息监听
-    private var mOnReceiveLocation: ((BDLocation) -> Unit)? = null
+    private var mBDAbstractLocationListener1: BDAbstractLocationListener? = null
     private val mBDAbstractLocationListener: BDAbstractLocationListener = object : BDAbstractLocationListener() {
         /**
          * 定位请求回调函数
@@ -73,12 +68,21 @@ class LocationUtils private constructor() {
             //此处的BDLocation为定位结果信息类，通过它的各种get方法可获取定位相关的全部结果
             //以下只列举部分获取地址相关的结果信息
             //更多结果信息获取说明，请参照类参考中BDLocation类中的说明
-
             printLocation(location)
-
             location ?: return
             mLocation = location
-            mOnReceiveLocation?.invoke(location)
+            mBDAbstractLocationListener1?.onReceiveLocation(location)
+        }
+
+        override fun onConnectHotSpotMessage(connectWifiMac: String?, hotSpotState: Int) {
+            super.onConnectHotSpotMessage(connectWifiMac, hotSpotState)
+            //在这个回调中，可获取当前设备所链接网络的类型、状态信息
+            //connectWifiMac：表示连接WI-FI的MAC地址，无连接或者异常时返回NULL
+            //hotSpotState有以下三种情况
+            //LocationClient.CONNECT_HPT_SPOT_TRUE：连接的是移动热点
+            //LocationClient.CONNECT_HPT_SPOT_FALSE：连接的非移动热点
+            //LocationClient.CONNECT_HPT_SPOT_UNKNOWN：连接状态未知
+            mBDAbstractLocationListener1?.onConnectHotSpotMessage(connectWifiMac, hotSpotState)
         }
 
         /**
@@ -90,6 +94,7 @@ class LocationUtils private constructor() {
         override fun onLocDiagnosticMessage(locType: Int, diagnosticType: Int, diagnosticMessage: String?) {
             super.onLocDiagnosticMessage(locType, diagnosticType, diagnosticMessage)
             printLocDiagnosticMessage(locType, diagnosticType, diagnosticMessage)
+            mBDAbstractLocationListener1?.onLocDiagnosticMessage(locType, diagnosticType, diagnosticMessage)
         }
     }
     private var mPermissionUtils: PermissionUtils? = null
@@ -98,12 +103,19 @@ class LocationUtils private constructor() {
         mContext = fragmentActivity.applicationContext
         mPermissionUtils = PermissionUtils(fragmentActivity)
         isProviderEnabled()
+        init()
     }
 
     fun init(fragment: Fragment) {
         mContext = fragment.context?.applicationContext
         mPermissionUtils = PermissionUtils(fragment)
         isProviderEnabled()
+        init()
+    }
+
+    fun init() {
+        mLocationClient.registerNotify(mBDNotifyListener)
+        mLocationClient.registerLocationListener(mBDAbstractLocationListener)
     }
 
     private fun isProviderEnabled() {
@@ -145,28 +157,18 @@ class LocationUtils private constructor() {
     /**
      * 位置提醒监听
      */
-    fun addOnNotifyListener(latitude: Double, longitude: Double, radius: Float, onNotify: (BDLocation, Float) -> Unit): LocationUtils {
-        mOnNotify = onNotify
+    fun setOnNotifyListener(latitude: Double, longitude: Double, radius: Float, listener: BDNotifyListener): LocationUtils {
         mBDNotifyListener.SetNotifyLocation(latitude, longitude, radius, mLocationClient.locOption.getCoorType())
-        mLocationClient.registerNotify(mBDNotifyListener)
+        mBDNotifyListener1 = listener
         return this
-    }
-
-    fun removeOnNotifyListener() {
-        mLocationClient.removeNotifyEvent(mBDNotifyListener)
     }
 
     /**
      * 接收到位置信息或者方向信息监听
      */
-    fun addOnReceiveLocationListener(onReceiveLocation: (BDLocation) -> Unit): LocationUtils {
-        mOnReceiveLocation = onReceiveLocation
-        mLocationClient.registerLocationListener(mBDAbstractLocationListener)
+    fun setOnReceiveLocationListener(listener: BDAbstractLocationListener): LocationUtils {
+        mBDAbstractLocationListener1 = listener
         return this
-    }
-
-    fun removeOnReceiveLocationListener() {
-        mLocationClient.unRegisterLocationListener(mBDAbstractLocationListener)
     }
 
     /**
@@ -222,9 +224,9 @@ class LocationUtils private constructor() {
         }
     }
 
-    fun destroy() {
-        removeOnNotifyListener()
-        removeOnReceiveLocationListener()
+    fun onDestroy() {
+        mLocationClient.removeNotifyEvent(mBDNotifyListener)
+        mLocationClient.unRegisterLocationListener(mBDAbstractLocationListener)
         stop()
     }
 
