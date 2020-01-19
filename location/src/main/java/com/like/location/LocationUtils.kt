@@ -25,7 +25,6 @@ class LocationUtils {
         mContext ?: throw UnsupportedOperationException("you must call init() first")
         LocationClient(mContext).apply { locOption = getDefaultLocationClientOption() }
     }
-    private var mLocation: BDLocation? = null
     // 位置到达监听。定位SDK支持位置提醒功能，位置提醒最多提醒3次，3次过后将不再提醒。假如需要再次提醒、或者要修改提醒点坐标，都可通过函数SetNotifyLocation()来实现。
     private var mBDNotifyListener1: BDNotifyListener? = null
     private val mBDNotifyListener: BDNotifyListener = object : BDNotifyListener() {
@@ -69,8 +68,6 @@ class LocationUtils {
             //以下只列举部分获取地址相关的结果信息
             //更多结果信息获取说明，请参照类参考中BDLocation类中的说明
             printLocation(location)
-            location ?: return
-            mLocation = location
             mBDAbstractLocationListener1?.onReceiveLocation(location)
         }
 
@@ -147,9 +144,7 @@ class LocationUtils {
      */
     @Synchronized
     fun setLocationClientOption(option: LocationClientOption) {
-        if (mLocationClient.isStarted) {
-            mLocationClient.stop()
-        }
+        mLocationClient.stop()
         mLocationClient.locOption = option
     }
 
@@ -218,15 +213,13 @@ class LocationUtils {
      */
     @Synchronized
     fun stop() {
-        if (mLocationClient.isStarted) {
-            mLocationClient.stop()
-        }
+        mLocationClient.stop()
     }
 
     fun onDestroy() {
         mLocationClient.removeNotifyEvent(mBDNotifyListener)
         mLocationClient.unRegisterLocationListener(mBDAbstractLocationListener)
-        stop()
+        mLocationClient.stop()
     }
 
     fun getDefaultLocationClientOption(): LocationClientOption {
