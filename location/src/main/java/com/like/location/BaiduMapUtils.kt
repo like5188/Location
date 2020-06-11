@@ -1,6 +1,9 @@
 package com.like.location
 
+import android.app.Activity
 import android.content.Context
+import android.graphics.Point
+import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import android.widget.ZoomControls
@@ -42,6 +45,58 @@ class BaiduMapUtils(private val mMapView: MapView) {
     fun getMapView(): MapView = mMapView
 
     fun getBaiduMap(): BaiduMap = mMapView.map
+
+    /**
+     * 获取屏幕左上角经纬度
+     */
+    fun getScreenLeftTopLatLng(): LatLng {
+        val activity = mMapView.context as? Activity ?: throw IllegalArgumentException("context must be Activity")
+        val dm = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(dm)
+        val point = Point()
+        point.x = 0
+        point.y = 0
+        return getBaiduMap().projection.fromScreenLocation(point)
+    }
+
+    /**
+     * 获取屏幕左下角经纬度
+     */
+    fun getScreenLeftBottomLatLng(): LatLng {
+        val activity = mMapView.context as? Activity ?: throw IllegalArgumentException("context must be Activity")
+        val dm = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(dm)
+        val point = Point()
+        point.x = 0
+        point.y = dm.heightPixels
+        return getBaiduMap().projection.fromScreenLocation(point)
+    }
+
+    /**
+     * 获取屏幕右上角经纬度
+     */
+    fun getScreenRightTopLatLng(): LatLng {
+        val activity = mMapView.context as? Activity ?: throw IllegalArgumentException("context must be Activity")
+        val dm = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(dm)
+        val point = Point()
+        point.x = dm.widthPixels
+        point.y = 0
+        return getBaiduMap().projection.fromScreenLocation(point)
+    }
+
+    /**
+     * 获取屏幕右下角经纬度
+     */
+    fun getScreenRightBottomLatLng(): LatLng {
+        val activity = mMapView.context as? Activity ?: throw IllegalArgumentException("context must be Activity")
+        val dm = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(dm)
+        val point = Point()
+        point.x = dm.widthPixels
+        point.y = dm.heightPixels
+        return getBaiduMap().projection.fromScreenLocation(point)
+    }
 
     /**
      * 自定义自己位置的图标
