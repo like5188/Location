@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.baidu.location.BDAbstractLocationListener
+import com.baidu.location.BDLocation
 import com.baidu.location.LocationClientOption
+import com.baidu.mapapi.model.LatLng
 import com.like.location.LocationUtils
 import com.like.location.NavigationUtils
 import com.like.location.sample.databinding.ActivityMainBinding
@@ -24,6 +27,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getLocation(view: View) {
+        mLocationUtils.setOnReceiveLocationListener(object : BDAbstractLocationListener() {
+            override fun onReceiveLocation(location: BDLocation) {
+                mLocationUtils.stop()
+            }
+        })
         val locationOption = LocationClientOption()
         // 设置定位场景，根据定位场景快速生成对应的定位参数  以出行场景为例
         // 1）签到场景：只进行一次定位返回最接近真实位置的定位结果

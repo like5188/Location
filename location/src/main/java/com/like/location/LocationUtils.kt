@@ -25,7 +25,6 @@ class LocationUtils {
         mContext ?: throw UnsupportedOperationException("you must call init() first")
         LocationClient(mContext).apply { locOption = getDefaultLocationClientOption() }
     }
-    private var mLocation: BDLocation? = null
     // 位置到达监听。定位SDK支持位置提醒功能，位置提醒最多提醒3次，3次过后将不再提醒。假如需要再次提醒、或者要修改提醒点坐标，都可通过函数SetNotifyLocation()来实现。
     private var mBDNotifyListener1: BDNotifyListener? = null
     private val mBDNotifyListener: BDNotifyListener = object : BDNotifyListener() {
@@ -51,8 +50,8 @@ class LocationUtils {
          *62 ： 无法获取有效定位依据，定位失败，请检查运营商网络或者wifi网络是否正常开启，尝试重新请求定位。
          *63 ： 网络异常，没有成功向服务器发起请求，请确认当前测试手机网络是否通畅，尝试重新请求定位。
          *65 ： 定位缓存的结果。
-         *66 ： 离线定位结果。通过requestOfflineLocaiton调用时对应的返回结果。
-         *67 ： 离线定位失败。通过requestOfflineLocaiton调用时对应的返回结果。
+         *66 ： 离线定位结果。通过requestOfflineLocation调用时对应的返回结果。
+         *67 ： 离线定位失败。通过requestOfflineLocation调用时对应的返回结果。
          *68 ： 网络连接失败时，查找本地离线定位时对应的返回结果。
          *161： 网络定位结果，网络定位定位成功。
          *162： 请求串密文解析失败。
@@ -69,8 +68,6 @@ class LocationUtils {
             //以下只列举部分获取地址相关的结果信息
             //更多结果信息获取说明，请参照类参考中BDLocation类中的说明
             printLocation(location)
-            location ?: return
-            mLocation = location
             mBDAbstractLocationListener1?.onReceiveLocation(location)
         }
 
@@ -147,9 +144,7 @@ class LocationUtils {
      */
     @Synchronized
     fun setLocationClientOption(option: LocationClientOption) {
-        if (mLocationClient.isStarted) {
-            mLocationClient.stop()
-        }
+        mLocationClient.stop()
         mLocationClient.locOption = option
     }
 
@@ -218,15 +213,13 @@ class LocationUtils {
      */
     @Synchronized
     fun stop() {
-        if (mLocationClient.isStarted) {
-            mLocationClient.stop()
-        }
+        mLocationClient.stop()
     }
 
     fun onDestroy() {
         mLocationClient.removeNotifyEvent(mBDNotifyListener)
         mLocationClient.unRegisterLocationListener(mBDAbstractLocationListener)
-        stop()
+        mLocationClient.stop()
     }
 
     fun getDefaultLocationClientOption(): LocationClientOption {

@@ -51,6 +51,16 @@ class MapActivity : AppCompatActivity() {
             mBaiduMapUtils.showInfoWindow(infoWindow)
             true
         })
+        mLocationUtils.setOnReceiveLocationListener(object : BDAbstractLocationListener() {
+            override fun onReceiveLocation(location: BDLocation) {
+                mLocationUtils.stop()
+                // 显示自己的位置，包括方向、图标、精度圈
+                mBaiduMapUtils.setMyLocationData(location)
+                // 把地图移动到自己的位置
+                mBaiduMapUtils.setMapCenter(LatLng(location.latitude, location.longitude))
+            }
+        })
+        location(mBinding.mapView)
     }
 
     fun createMarker(view: View) {
@@ -72,14 +82,6 @@ class MapActivity : AppCompatActivity() {
     }
 
     fun location(view: View) {
-        mLocationUtils.setOnReceiveLocationListener(object : BDAbstractLocationListener() {
-            override fun onReceiveLocation(location: BDLocation) {
-                // 显示自己的位置，包括方向、图标、精度圈
-                mBaiduMapUtils.setMyLocationData(location)
-                // 把地图移动到自己的位置
-                mBaiduMapUtils.setMapCenter(LatLng(location.latitude, location.longitude))
-            }
-        })
         val locationOption = LocationClientOption()
         // 设置定位场景，根据定位场景快速生成对应的定位参数  以出行场景为例
         // 1）签到场景：只进行一次定位返回最接近真实位置的定位结果
