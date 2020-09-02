@@ -35,9 +35,8 @@
     }
 
     dependencies {
-        implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
-        // rxjava2
-        implementation 'io.reactivex.rxjava2:rxjava:2.2.11'
+        implementation 'androidx.activity:activity-ktx:1.2.0-alpha08'
+        implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
 
         implementation 'com.github.like5188:Location:版本号'
     }

@@ -6,10 +6,11 @@ import android.location.LocationManager
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultCaller
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.baidu.location.*
-import com.like.location.util.PermissionUtils
 
 /**
  * [LocationClient]实现的定位工具类。
@@ -94,17 +95,17 @@ class LocationUtils {
             mBDAbstractLocationListener1?.onLocDiagnosticMessage(locType, diagnosticType, diagnosticMessage)
         }
     }
-    private var mPermissionUtils: PermissionUtils? = null
+    private var mActivityResultCaller: ActivityResultCaller? = null
 
-    constructor(fragmentActivity: FragmentActivity) {
-        mContext = fragmentActivity.applicationContext
-        mPermissionUtils = PermissionUtils(fragmentActivity)
+    constructor(activity: ComponentActivity) {
+        mActivityResultCaller = activity
+        mContext = activity.applicationContext
         init()
     }
 
     constructor(fragment: Fragment) {
+        mActivityResultCaller = fragment
         mContext = fragment.context?.applicationContext
-        mPermissionUtils = PermissionUtils(fragment)
         init()
     }
 
@@ -192,7 +193,7 @@ class LocationUtils {
      */
     @Synchronized
     fun restart() {
-        mPermissionUtils?.checkLocationPermissionGroup {
+        mActivityResultCaller?.requestPermissionsTrue(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION) {
             mLocationClient.restart()
         }
     }
@@ -203,9 +204,17 @@ class LocationUtils {
      */
     @Synchronized
     fun start() {
-        mPermissionUtils?.checkLocationPermissionGroup {
+        mActivityResultCaller?.requestPermissionsTrue(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION) {
             mLocationClient.start()
         }
+    }
+
+    private inline fun ActivityResultCaller.requestPermissionsTrue(vararg permissions: String, crossinline callback: () -> Unit) {
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (it.values.all { it }) {
+                callback()
+            }
+        }.launch(permissions)
     }
 
     /**
